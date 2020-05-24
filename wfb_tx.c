@@ -273,7 +273,6 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 		for (l = 0; l < 2; l++) {
 			if (fgets(line, 100, procfile) == NULL) {
 				result = -1;
-				fclose(procfile);
 				break;
 			}
 		}
@@ -298,7 +297,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 			wfb_tx->type[num_interfaces] = 0;
 		}
 
-		wfb_tx->sock[num_interfaces] = open_sock(interfaces[i]);
+		wfb_tx->sock[wfb_tx->count] = open_sock(interfaces[i]);
 		wfb_tx->count++;
 
 		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi USB flakiness
