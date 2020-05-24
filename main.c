@@ -63,13 +63,13 @@ start_microservices(void)
 		size_t count;
 	} svc_list = {
 		{
-			//{"gps", 	gps_init,	gps_main},
-			//{"sensors",	sensors_init,	sensors_main},
-			//{"motion",	motion_init,	motion_main},
+			{"gps", 	gps_init,	gps_main},
+			{"sensors",	sensors_init,	sensors_main},
+			{"motion",	motion_init,	motion_main},
 			{"telemetry",	telemetry_init,	telemetry_main},
-			//{"rc",		rc_init,	rc_main}
+			{"rc",		rc_init,	rc_main}
 		},
-		1U
+		5U
 	};
 
 	size_t i;

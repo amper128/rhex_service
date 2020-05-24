@@ -10,10 +10,14 @@
 #include <canbus.h>
 #include <log.h>
 #include <motion.h>
+#include <rhex_rc.h>
+#include <sharedmem.h>
 #include <timerfd.h>
 
 #include <math.h>
 #include <string.h>
+
+static shm_t rc_shm;
 
 /*
  * Position data:
@@ -203,6 +207,10 @@ do_motion()
 		parse_msg(&msg);
 	}
 
+	void *p;
+	shm_map_read(&rc_shm, &p);
+	rc_data_t *rc_data = p;
+
 	if (drv_ready[0] > 0) {
 		if (drv_ready[0] == 100) {
 			make_step(0.3f);
@@ -211,7 +219,7 @@ do_motion()
 		}
 
 		if (drv_ready[0] >= 500) {
-			make_step(0.5f);
+			make_step(rc_data->speed);
 		}
 
 		if ((drv_ready[0] % 100) == 0) {
@@ -242,6 +250,8 @@ motion_main(void)
 	if (timerfd < 0) {
 		return 1;
 	}
+
+	shm_map_open("shm_rc", &rc_shm);
 
 //	start_msg();
 
