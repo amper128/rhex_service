@@ -1,0 +1,127 @@
+@startuml
+cloud wifi as "Wifi"
+
+node "air" {
+	package wfb as "WifiBroadcast" {
+		[rx_rc_telemetry_buf]
+		[tx_rawsock]
+		[tx_telemetry_1] as "tx_telemetry (port 1)"
+		[tx_telemetry_30] as "tx_telemetry (port 30)"
+	}
+
+	[camera]
+
+	package canbus as "CAN utilites" {
+		()can_rx as "CAN input"
+		()can_tx as "CAN output"
+		[can_rx_worker] as "CAN reader"
+		[can_tx_worker] as "CAN sender"
+	}
+
+	package main as "Main service" {
+		[motion_controller] as "Motion controller"
+	}
+
+	database tel_db as "Telemetry"
+
+	()RC as "RC commands"
+
+	package telemetry as "Telemetry service" {
+		[can_status] as "CAN status"
+		[nmea] as "Nmea parser"
+		[i2c_reader] as "GY-80 reader"
+		()gps_shm
+		()sensor_shm
+		()can_shm
+		[telemetry_writer]
+
+		can_status -up-> can_shm
+		nmea -up-> gps_shm
+		i2c_reader -up-> sensor_shm
+		can_shm -up-> telemetry_writer
+		gps_shm -up-> telemetry_writer
+		sensor_shm -up-> telemetry_writer
+	}
+
+	[GPS]
+	[GY80] as "GY-80\nAccel, MEMS,\nBMP180, Compass"
+
+
+	cloud CAN as "CAN bus"
+
+	CAN --> can_rx_worker
+	can_rx_worker -up-> can_rx
+
+	can_tx -down-> can_tx_worker
+	can_tx_worker -down-> CAN
+
+	rx_rc_telemetry_buf --> RC
+
+	RC -down-> motion_controller : comands
+
+	motion_controller -down-> can_tx : send commands
+	can_rx -up-> motion_controller : read status
+
+	GPS -up-> nmea : uart
+	GY80 -up-> i2c_reader : i2c
+
+	motion_controller -> can_status : telemetry
+
+	telemetry_writer -up-> tel_db
+
+	tel_db -up-> tx_telemetry_1
+
+	camera -up-> tx_rawsock
+	tx_rawsock -up-> wifi : video
+	tx_telemetry_1 -up-> wifi : telemetry
+	wifi -down-> rx_rc_telemetry_buf : control commands, RC
+}
+
+cloud wifi_g as "Wifi"
+
+wifi <...right...> wifi_g
+
+node "ground" {
+	package wfb_ground as "WifiBroadcast" {
+		[sharedmem_init_rx]
+		[rx]
+		[rssirx]
+		[rssi_qgc_forward]
+		[rx_rc_telemetry_buf_g] as "rx_rc_telemetry_buf (port 1)"
+		()telemetryfifo
+		()videofifo
+		[socat]
+		[gstreamer]
+		[tx_telemetry_rc] as "tx_telemetry"
+		[socat_rc] as "socat"
+		()rcfifo
+
+		rx -down-> videofifo
+		videofifo -down-> gstreamer
+		rssirx -down-> telemetryfifo
+		telemetryfifo -down-> rssi_qgc_forward
+		rx_rc_telemetry_buf_g -down-> socat
+	}
+
+	wifi_g -down-> rssirx
+	wifi_g -down-> rx
+	wifi_g -down-> rx_rc_telemetry_buf_g
+	tx_telemetry_rc -up-> wifi_g
+
+
+	[QOpenHD]
+
+	socat -down-> QOpenHD : UDP 5011
+	rssi_qgc_forward -down-> QOpenHD : UDP 5154
+	gstreamer -down-> QOpenHD : UDP 5600
+	QOpenHD -up-> socat_rc : UDP 5565 [RC]
+	socat_rc -up-> rcfifo
+	rcfifo -up-> tx_telemetry_rc
+
+	[Display]
+	[joystick]
+
+	QOpenHD -down-> Display
+	joystick -up-> QOpenHD
+}
+@enduml
