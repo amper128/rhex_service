@@ -94,6 +94,9 @@ main_cycle(void)
 int
 main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
+
 	int timerfd;
 
 	timerfd = timerfd_init(100ULL * TIME_MS, 100ULL * TIME_MS);

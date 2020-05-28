@@ -78,7 +78,8 @@ make_step(float speed)
 
 	uint32_t d;
 	for (d = 0U; d < 2U; d++) {
-		m_phase[d] += (speed * 1.7f) / (float)TICKS;
+		//m_phase[d] += (speed * 1.7f) / (float)TICKS;
+		m_phase[d] += speed / (float)TICKS;
 		if (m_phase[d] > 1.0f) {
 			m_phase[d] -= 1.0f;
 		}
@@ -100,7 +101,7 @@ make_step(float speed)
 		phase_pos = 384.0f - phase_pos;
 		//float m_speed;
 		//m_speed = fabs((float)MAX_SPEED * speed);
-		float m_speed = fabs(fdiff(phase_pos, pos[d])) * 100.0f;
+		float m_speed = fabs(fdiff(phase_pos, pos[d])) * 105.0f;
 		if (m_speed > 1536) {
 			m_speed = 1536;
 		}
@@ -128,6 +129,18 @@ make_step(float speed)
 		msg.len = sizeof(data);
 		memcpy(msg.data, &data, sizeof(data));
 		send_can_msg(&msg);
+
+		data.drive = (uint8_t)(d + 1) & 0x01U;
+		msg.msg.dest_id = 1U;
+		memcpy(msg.data, &data, sizeof(data));
+		send_can_msg(&msg);
+
+		data.drive = (uint8_t)d;
+		data.position = 768 - (uint16_t)pos[d];
+		msg.msg.dest_id = 3U;
+		memcpy(msg.data, &data, sizeof(data));
+		send_can_msg(&msg);
+
 	}
 }
 
