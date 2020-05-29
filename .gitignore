@@ -1,1 +1,11 @@
+#ignore build files
 *.o
+# ignore qtcreator files
+*.cflags
+*.cflags
+*.config
+*.creator
+*.user
+*.cxxflags
+*.files
+*.includes
