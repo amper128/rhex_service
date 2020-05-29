@@ -182,17 +182,50 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 		exit(1);
 	}
 
+	int dbm = -127;
+
 	while ((n = ieee80211_radiotap_iterator_next(&rti)) == 0) {
 		switch (rti.this_arg_index) {
 		case IEEE80211_RADIOTAP_FLAGS:
 			//prd.m_nRadiotapFlags = *rti.this_arg;
 			break;
-		case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
-	//		fprintf(stderr, "ant signal:%d\n",(int8_t)(*rti.this_arg));
-			rx_data->dbm = (int8_t)(*rti.this_arg);
+		case IEEE80211_RADIOTAP_ANTENNA:
+			//ant[adapter_no] = (int8_t) (*rti.this_arg);
+			//fprintf(stderr, "Ant: %d   ", ant[adapter_no]);
+			break;
+		case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
+			//db[adapter_no] = (int8_t) (*rti.this_arg);
+			//fprintf(stderr, "DB: %d   ", db[adapter_no]);
+			break;
+		case IEEE80211_RADIOTAP_DBM_ANTNOISE:
+			//dbm_noise[adapter_no] = (int8_t) (*rti.this_arg);
+			//fprintf(stderr, "DBM Noise: %d   ", dbm_noise[adapter_no]);
+			break;
+		case IEEE80211_RADIOTAP_LOCK_QUALITY:
+			//quality[adapter_no] = (int16_t) (*rti.this_arg);
+			//fprintf(stderr, "Quality: %d   ", quality[adapter_no]);
+			break;
+		case IEEE80211_RADIOTAP_TSFT:
+			//tsft[adapter_no] = (int64_t) (*rti.this_arg);
+			//fprintf(stderr, "TSFT: %d   ", tsft[adapter_no]);
+			break;
+		case IEEE80211_RADIOTAP_DBM_ANTSIGNAL: {
+			int8_t signal_dbm = (int8_t)(*rti.this_arg);
+			if ((signal_dbm < 0) && (signal_dbm > -126)) {
+				if (signal_dbm > dbm) {
+					dbm = signal_dbm;
+				}
+			}
+		}
+		       break;
+
+		default:
+			/* do nothing */
 			break;
 		}
 	}
+
+	rx_data->dbm = dbm;
 
 	if (bytes > MAX_MTU) {
 		bytes = MAX_MTU;
@@ -246,7 +279,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 		} else { // ralink
 			log_inf("RX_RC_TELEMETRY: Driver: Ralink or Realtek");
 			wfb_rx->type[wfb_rx->count] = (int8_t)(1);
-                }
+		}
 
 		open_and_configure_interface(interfaces[i], &wfb_rx->iface[wfb_rx->count], port);
 		wfb_rx->count++;

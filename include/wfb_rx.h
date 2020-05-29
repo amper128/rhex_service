@@ -27,7 +27,7 @@ typedef struct {
 
 int wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port);
 
-#define MAX_MTU (1500U)
+#define MAX_MTU (1500)
 
 typedef struct {
 	int type;	// r/c or telemetry
