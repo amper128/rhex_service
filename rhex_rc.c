@@ -11,13 +11,16 @@
 #include <wfb_rx.h>
 
 static shm_t rc_shm;
-static rc_data_t rc_data;
+static shm_t rc_status_shm;
 
+static rc_data_t rc_data;
+static rc_status_t rc_status;
 
 int
 rc_init(void)
 {
 	shm_map_init("shm_rc", sizeof(rc_data_t));
+	shm_map_init("shm_rc_status", sizeof(rc_status_t));
 
 	return 0;
 }
@@ -28,10 +31,10 @@ rc_main(void)
 	printf("RX R/C Telemetry started\n");
 
 	shm_map_open("shm_rc", &rc_shm);
+	shm_map_open("shm_rc_status", &rc_status_shm);
 
-	monitor_interface_t interfaces[8];
-	int num_interfaces = 0;
-	int i;
+	size_t i;
+
 	int result;
 
 	wfb_rx_t rc_rx = {0,};
@@ -83,26 +86,19 @@ rc_main(void)
 		to.tv_usec = 1e5; // 100ms timeout
 		fd_set readset;
 		FD_ZERO(&readset);
-//log_dbg("1");
+
 		for (i = 0; i < rc_rx.count; ++i) {
-//log_dbg("fd_set %i", rc_rx.iface[i].selectable_fd);
 			FD_SET(rc_rx.iface[i].selectable_fd, &readset);
 		}
-//log_dbg("2");
 
 		int n = select(30, &readset, NULL, NULL, &to); // TODO: check what the 30 does exactly
-		//fprintf(stderr,"n: %d\n",n);
 		if (n == 0) {
 			continue;
 		}
-//log_dbg("3");
 
 		for (i = 0; i < rc_rx.count; i++) {
-			// if (n == 0) break;
-
 			if (FD_ISSET(rc_rx.iface[i].selectable_fd, &readset)) {
 				wfb_rx_packet_t rx_data = {0,};
-				//printf("FD_ISSET\n");
 				//process_packet(interfaces + i, i,serialport);
 				if (wfb_rx_packet(&rc_rx.iface[i], &rx_data)) {
 					struct _r {
@@ -120,8 +116,6 @@ rc_main(void)
 
 					r.u8 = rx_data.data;
 
-					int p;
-
 					r.r->rc2 -= 1500;
 					r.r->rc3 -= 1500;
 
@@ -130,10 +124,16 @@ rc_main(void)
 					rc_data.speed = (float)r.r->rc2 / 500.0f;
 					shm_map_write(&rc_shm, &rc_data, sizeof(rc_data));
 
+					rc_status.received_packet_cnt++;
+					rc_status.signal_dbm = rx_data.dbm;
+
+					shm_map_write(&rc_status_shm, &rc_status, sizeof(rc_status));
+
+					/*int p;
 					for (p = 0; p < rx_data.bytes; p++) {
-						//printf("%02X ", rx_data.data[p]);
+						printf("%02X ", rx_data.data[p]);
 					}
-					//puts("\n");
+					puts("\n");*/
 				}
 			}
 		}
