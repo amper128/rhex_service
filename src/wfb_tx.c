@@ -131,28 +131,28 @@ static uint8_t u8aRadiotapHeader80211n[] = {
 };
 
 static uint8_t u8aIeeeHeader_data[] = {
-        0x08, 0x02, 0x00, 0x00, 		/**< @brief frame control field (2 bytes), duration (2 bytes) */
-        0xff, 0x00, 0x00, 0x00, 0x00, 0x00,	/**< @brief 1st byte of MAC will be overwritten with encoded port */
-        0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
-        0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
-        0x00, 0x00 				/**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi chip) */
+	0x08, 0x02, 0x00, 0x00, 		/**< @brief frame control field (2 bytes), duration (2 bytes) */
+	0xff, 0x00, 0x00, 0x00, 0x00, 0x00,	/**< @brief 1st byte of MAC will be overwritten with encoded port */
+	0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
+	0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
+	0x00, 0x00 				/**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi chip) */
 };
 
 static uint8_t u8aIeeeHeader_data_short[] = {
-        0x08, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
-        0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
+	0x08, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
+	0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
 };
 
 static uint8_t u8aIeeeHeader_rts[] = {
-        0xb4, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
-        0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
+	0xb4, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
+	0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
 };
 
 static uint8_t dummydata[] = {
-        0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-        0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-        0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-        0xdd, 0xdd, 0xdd, 0xdd
+	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+	0xdd, 0xdd, 0xdd, 0xdd
 };
 
 int flagHelp = 0;
@@ -164,7 +164,7 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 	header.length = len;
 	//	fprintf(stderr,"seqno: %d",seqno);
 	int padlen = 0;
-	int i;
+	size_t i;
 
 	for (i = 0; i < wfb_tx->count; i++) {
 		switch (wfb_tx->type[i]) {
@@ -251,8 +251,8 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 	int port_encoded = 0;
 	int param_cts = 0;
 	int param_data_rate = 12;
-	int i;
-	int num_interfaces = 0;
+	size_t i;
+	size_t num_interfaces = 0;
 
 	for (i = 0; (i < num_if) && (num_interfaces < MAX_ADAP); i++) {
 		FILE* procfile;
@@ -279,10 +279,10 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 		fclose(procfile);
 
 		if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0 || (
-				strncmp(line, "DRIVER=8812au",    13) == 0 || 
-				strncmp(line, "DRIVER=8814au",    13) == 0 || 
-				strncmp(line, "DRIVER=rtl8812au", 16) == 0 || 
-				strncmp(line, "DRIVER=rtl8814au", 16) == 0 || 
+				strncmp(line, "DRIVER=8812au",    13) == 0 ||
+				strncmp(line, "DRIVER=8814au",    13) == 0 ||
+				strncmp(line, "DRIVER=rtl8812au", 16) == 0 ||
+				strncmp(line, "DRIVER=rtl8814au", 16) == 0 ||
 				strncmp(line, "DRIVER=rtl88xxau", 16) == 0))
 		{
 			if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0) {

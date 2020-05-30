@@ -168,7 +168,7 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 	pu8Payload -= u16HeaderLen;
 
 	//  fprintf(stderr, "ppcapPacketHeader->len: %d\n", ppcapPacketHeader->len);
-	if (ppcapPacketHeader->len < (u16HeaderLen + interface->n80211HeaderLength)) {
+	if (ppcapPacketHeader->len < (bpf_u_int32)(u16HeaderLen + interface->n80211HeaderLength)) {
 		exit(1);
 	}
 

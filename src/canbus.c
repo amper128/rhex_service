@@ -73,8 +73,8 @@ read_can_msg(struct can_packet_t *msg)
 
 		int r = read(can_sock, &frame, sizeof(struct can_frame));
 
-		while (r) {
-			if (r < sizeof(struct can_frame)) {
+		while (r > 0) {
+			if ((size_t)r < sizeof(struct can_frame)) {
 				log_err("read: incomplete CAN frame");
 				break;
 			}
