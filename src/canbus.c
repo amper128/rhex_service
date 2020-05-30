@@ -6,17 +6,16 @@
  * @brief Функции работы с CAN шиной
  */
 
+#include <fcntl.h>
+#include <linux/can/raw.h>
 #include <net/if.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#include <linux/can/raw.h>
 
 #include <can_proto.h>
 #include <canbus.h>
 #include <log.h>
+#include <platform.h>
 
 static int can_sock = -1;
 

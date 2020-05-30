@@ -25,30 +25,34 @@
 #include <log.h>
 #include <wfb_rx.h>
 
-#include <radiotap/radiotap_rc.h>
 #include <radiotap/radiotap_iter.h>
+#include <radiotap/radiotap_rc.h>
 
-#include <string.h>
 #include <pcap.h>
-
+#include <string.h>
 
 static const struct radiotap_align_size align_size_000000_00[] = {
-	[0] = { .align = 1, .size = 4, },
-	[52] = { .align = 1, .size = 4, },
+	[0] =
+	    {
+		.align = 1, .size = 4,
+	    },
+	[52] =
+	    {
+		.align = 1, .size = 4,
+	    },
 };
 
 static const struct ieee80211_radiotap_namespace vns_array[] = {
-	{
-		.oui = 0x000000,
-		.subns = 0,
-		.n_bits = sizeof(align_size_000000_00),
-		.align_size = align_size_000000_00,
-	},
+    {
+	.oui = 0x000000,
+	.subns = 0,
+	.n_bits = sizeof(align_size_000000_00),
+	.align_size = align_size_000000_00,
+    },
 };
 
 static const struct ieee80211_radiotap_vendor_namespaces vns = {
-	.ns = vns_array,
-	.n_ns = sizeof(vns_array)/sizeof(vns_array[0]),
+    .ns = vns_array, .n_ns = sizeof(vns_array) / sizeof(vns_array[0]),
 };
 
 static void
@@ -77,13 +81,19 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 
 	// match (RTS BF) or (DATA, DATA SHORT, RTS (and port))
 	if (nLinkEncap == DLT_IEEE802_11_RADIO) {
-		//if (param_rc_protocol != 99) { // only match on R/C packets if R/C enabled
-			/*sprintf(szProgram, "ether[0x00:4] == 0xb4bf0000 || ((ether[0x00:2] == 0x0801 || ether[0x00:2] == 0x0802 || ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x)", port_encoded);
-		} else {*/
-			sprintf(szProgram, "(ether[0x00:2] == 0x0801 || ether[0x00:2] == 0x0802 || ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x", port_encoded);
+		// if (param_rc_protocol != 99) { // only match on R/C packets if R/C enabled
+		/*sprintf(szProgram, "ether[0x00:4] == 0xb4bf0000 || ((ether[0x00:2] == 0x0801 ||
+	ether[0x00:2] == 0x0802 || ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x)",
+	port_encoded);
+	} else {*/
+		sprintf(szProgram, "(ether[0x00:2] == 0x0801 || ether[0x00:2] == 0x0802 || "
+				   "ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x",
+			port_encoded);
 		//}
 	} else {
-		log_err("ERROR: unknown encapsulation on %s! check if monitor mode is supported and enabled", name);
+		log_err("ERROR: unknown encapsulation on %s! check if monitor mode is supported "
+			"and enabled",
+			name);
 		exit(1);
 	}
 
@@ -109,10 +119,10 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 {
 	int result = 0;
 
-	struct pcap_pkthdr * ppcapPacketHeader = NULL;
+	struct pcap_pkthdr *ppcapPacketHeader = NULL;
 
 	struct ieee80211_radiotap_iterator rti;
-	//PENUMBRA_RADIOTAP_DATA prd;
+	// PENUMBRA_RADIOTAP_DATA prd;
 	uint8_t payloadBuffer[300];
 	uint8_t *pu8Payload = payloadBuffer;
 	int bytes;
@@ -121,7 +131,7 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 	int u16HeaderLen;
 
 	// receive
-	retval = pcap_next_ex(interface->ppcap, &ppcapPacketHeader, (const u_char**)&pu8Payload);
+	retval = pcap_next_ex(interface->ppcap, &ppcapPacketHeader, (const u_char **)&pu8Payload);
 	if (retval < 0) {
 		if (strcmp("The interface went down", pcap_geterr(interface->ppcap)) == 0) {
 			log_err("rx: The interface went down");
@@ -137,7 +147,8 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 		return 1;
 	}
 
-	// fetch radiotap header length from radiotap header (seems to be 36 for Atheros and 18 for Ralink)
+	// fetch radiotap header length from radiotap header (seems to be 36 for Atheros and 18 for
+	// Ralink)
 	u16HeaderLen = (pu8Payload[2] + (pu8Payload[3] << 8));
 	//  fprintf(stderr, "u16headerlen: %d\n", u16HeaderLen);
 
@@ -169,12 +180,13 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 	}
 
 	bytes = ppcapPacketHeader->len - (u16HeaderLen + interface->n80211HeaderLength);
-	//fprintf(stderr, "bytes: %d\n", bytes);
+	// fprintf(stderr, "bytes: %d\n", bytes);
 	if (bytes < 0) {
 		exit(1);
 	}
 
-	if (ieee80211_radiotap_iterator_init(&rti, (struct ieee80211_radiotap_header *)pu8Payload, ppcapPacketHeader->len, &vns) < 0) {
+	if (ieee80211_radiotap_iterator_init(&rti, (struct ieee80211_radiotap_header *)pu8Payload,
+					     ppcapPacketHeader->len, &vns) < 0) {
 		exit(1);
 	}
 
@@ -183,27 +195,27 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 	while ((n = ieee80211_radiotap_iterator_next(&rti)) == 0) {
 		switch (rti.this_arg_index) {
 		case IEEE80211_RADIOTAP_FLAGS:
-			//prd.m_nRadiotapFlags = *rti.this_arg;
+			// prd.m_nRadiotapFlags = *rti.this_arg;
 			break;
 		case IEEE80211_RADIOTAP_ANTENNA:
-			//ant[adapter_no] = (int8_t) (*rti.this_arg);
-			//fprintf(stderr, "Ant: %d   ", ant[adapter_no]);
+			// ant[adapter_no] = (int8_t) (*rti.this_arg);
+			// fprintf(stderr, "Ant: %d   ", ant[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
-			//db[adapter_no] = (int8_t) (*rti.this_arg);
-			//fprintf(stderr, "DB: %d   ", db[adapter_no]);
+			// db[adapter_no] = (int8_t) (*rti.this_arg);
+			// fprintf(stderr, "DB: %d   ", db[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DBM_ANTNOISE:
-			//dbm_noise[adapter_no] = (int8_t) (*rti.this_arg);
-			//fprintf(stderr, "DBM Noise: %d   ", dbm_noise[adapter_no]);
+			// dbm_noise[adapter_no] = (int8_t) (*rti.this_arg);
+			// fprintf(stderr, "DBM Noise: %d   ", dbm_noise[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_LOCK_QUALITY:
-			//quality[adapter_no] = (int16_t) (*rti.this_arg);
-			//fprintf(stderr, "Quality: %d   ", quality[adapter_no]);
+			// quality[adapter_no] = (int16_t) (*rti.this_arg);
+			// fprintf(stderr, "Quality: %d   ", quality[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_TSFT:
-			//tsft[adapter_no] = (int64_t) (*rti.this_arg);
-			//fprintf(stderr, "TSFT: %d   ", tsft[adapter_no]);
+			// tsft[adapter_no] = (int64_t) (*rti.this_arg);
+			// fprintf(stderr, "TSFT: %d   ", tsft[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DBM_ANTSIGNAL: {
 			int8_t signal_dbm = (int8_t)(*rti.this_arg);
@@ -212,8 +224,7 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 					dbm = signal_dbm;
 				}
 			}
-		}
-		       break;
+		} break;
 
 		default:
 			/* do nothing */
@@ -241,7 +252,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 {
 	int result = 0;
 	char path[45], line[100];
-	FILE* procfile;
+	FILE *procfile;
 
 	wfb_rx->count = 0U;
 
@@ -250,7 +261,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i]);
 		procfile = fopen(path, "r");
 		if (!procfile) {
-			fprintf(stderr,"ERROR: opening %s failed!\n", path);
+			fprintf(stderr, "ERROR: opening %s failed!\n", path);
 			result = -1;
 			break;
 		}
@@ -280,7 +291,8 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 		open_and_configure_interface(interfaces[i], &wfb_rx->iface[wfb_rx->count], port);
 		wfb_rx->count++;
 
-		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi USB flakiness
+		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi
+			       // USB flakiness
 	}
 
 	return result;

@@ -6,7 +6,6 @@
  * @brief Функции планирования движения
  */
 
-#include <can_proto.h>
 #include <canbus.h>
 #include <log.h>
 #include <motion.h>
@@ -35,7 +34,7 @@ static shm_t rc_shm;
  */
 
 static int drv_ready[2U] = {0, 0};
-//static int drv_park[2U] = {0, 0};
+// static int drv_park[2U] = {0, 0};
 
 struct motion_data_t {
 	uint16_t min_val;
@@ -71,14 +70,17 @@ make_step(float speed)
 
 	speed = speed * 1.01f;
 
-	float phase_start = (float)down_phase_start.min_val + (((float)down_phase_start.max_val - (float)down_phase_start.min_val) * speed);
-	float phase_end   = (float)down_phase_end.min_val   + (((float)down_phase_end.max_val   - (float)down_phase_end.min_val)   * speed);
+	float phase_start =
+	    (float)down_phase_start.min_val +
+	    (((float)down_phase_start.max_val - (float)down_phase_start.min_val) * speed);
+	float phase_end = (float)down_phase_end.min_val +
+			  (((float)down_phase_end.max_val - (float)down_phase_end.min_val) * speed);
 
 	static float pos[2] = {192.0f, 192.0f + 384.0f};
 
 	uint32_t d;
 	for (d = 0U; d < 2U; d++) {
-		//m_phase[d] += (speed * 1.7f) / (float)TICKS;
+		// m_phase[d] += (speed * 1.7f) / (float)TICKS;
 		m_phase[d] += speed / (float)TICKS;
 		if (m_phase[d] > 1.0f) {
 			m_phase[d] -= 1.0f;
@@ -89,23 +91,24 @@ make_step(float speed)
 
 		float phase_pos;
 
-//		if ((pos[d] < phase_start) && (pos[d] > phase_end)) {
+		//		if ((pos[d] < phase_start) && (pos[d] > phase_end)) {
 		if (m_phase[d] > 0.5f) {
 			phase_pos = (2.0f * (m_phase[d] - 0.5f)) * (phase_start - phase_end);
 		} else {
-			phase_pos = (2.0f * (m_phase[d] - 0.5f)) * (FULL_CIRCLE - (phase_start - phase_end));
+			phase_pos = (2.0f * (m_phase[d] - 0.5f)) *
+				    (FULL_CIRCLE - (phase_start - phase_end));
 		}
 
 		phase_pos += phase_end;
 
 		phase_pos = 384.0f - phase_pos;
-		//float m_speed;
-		//m_speed = fabs((float)MAX_SPEED * speed);
+		// float m_speed;
+		// m_speed = fabs((float)MAX_SPEED * speed);
 		float m_speed = fabs(fdiff(phase_pos, pos[d])) * 105.0f;
 		if (m_speed > 1536) {
 			m_speed = 1536;
 		}
-//		fprintf(stderr, "speed: %.1f\n", m_speed);
+		//		fprintf(stderr, "speed: %.1f\n", m_speed);
 		pos[d] = phase_pos;
 
 		if (pos[d] > 768.0f) {
@@ -115,8 +118,12 @@ make_step(float speed)
 			pos[d] += 768.0f;
 		}
 
-		struct can_packet_t msg = {0, };
-		struct motion_cmd_t data = {0, };
+		struct can_packet_t msg = {
+		    0,
+		};
+		struct motion_cmd_t data = {
+		    0,
+		};
 
 		data.drive = (uint8_t)d;
 		data.motion_type = MOTION_TYPE_POS;
@@ -140,7 +147,6 @@ make_step(float speed)
 		msg.msg.dest_id = 3U;
 		memcpy(msg.data, &data, sizeof(data));
 		send_can_msg(&msg);
-
 	}
 }
 
@@ -150,7 +156,9 @@ start_msg(void)
 	uint8_t d;
 
 	for (d = 1U; d <= 3U; d++) {
-		struct can_packet_t msg = {0,};
+		struct can_packet_t msg = {
+		    0,
+		};
 
 		msg.msg.dest_id = d;
 		msg.msg.cmd_id = MSG_ID_GET_STATUS;
@@ -164,11 +172,14 @@ start_msg(void)
 static void
 parse_msg(const struct can_packet_t *msg)
 {
-	log_inf("recv: from=%X, dest=%x, cmd=%x, data_len=%u", msg->msg.src_id, msg->msg.dest_id, msg->msg.cmd_id, msg->len);
+	log_inf("recv: from=%X, dest=%x, cmd=%x, data_len=%u", msg->msg.src_id, msg->msg.dest_id,
+		msg->msg.cmd_id, msg->len);
 
 	if (msg->msg.msg_type == 1U) {
 		if (msg->msg.cmd_id == MSG_ID_GET_STATUS) {
-			struct can_packet_t msg2 = {0,};
+			struct can_packet_t msg2 = {
+			    0,
+			};
 
 			uint8_t dest = msg->msg.src_id;
 			uint8_t m = 0U;
@@ -190,7 +201,9 @@ parse_msg(const struct can_packet_t *msg)
 		if (msg->msg.cmd_id == MSG_ID_DRV_CALIBRATION_START) {
 			log_inf("calibration %u done", msg->data[0]);
 
-			struct can_packet_t msg2 = {0,};
+			struct can_packet_t msg2 = {
+			    0,
+			};
 
 			msg2.msg.dest_id = msg->msg.src_id;
 			msg2.msg.cmd_id = MSG_ID_DRV_LEG_STAND;
@@ -201,7 +214,6 @@ parse_msg(const struct can_packet_t *msg)
 			send_can_msg(&msg2);
 
 			drv_ready[0] = 1;
-
 		}
 
 		if (msg->msg.cmd_id == MSG_ID_DRV_LEG_STAND) {
@@ -227,8 +239,8 @@ do_motion()
 	if (drv_ready[0] > 0) {
 		if (drv_ready[0] == 100) {
 			make_step(0.3f);
-			//fprintf(stderr, "100\n");
-			//usleep(10000000ULL);
+			// fprintf(stderr, "100\n");
+			// usleep(10000000ULL);
 		}
 
 		if (drv_ready[0] >= 500) {
@@ -266,10 +278,9 @@ motion_main(void)
 
 	shm_map_open("shm_rc", &rc_shm);
 
-//	start_msg();
+	//	start_msg();
 
 	drv_ready[0] = 1;
-
 
 	while (wait_cycle(timerfd)) {
 		do_motion();

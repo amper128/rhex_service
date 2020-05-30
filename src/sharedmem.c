@@ -6,11 +6,10 @@
  * @brief Функции работы с общей памятью
  */
 
-#include <string.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
 
 #include <log.h>
 #include <sharedmem.h>
@@ -39,7 +38,7 @@ typedef struct {
 static inline size_t
 align_size(size_t size)
 {
-	return (size + (sizeof(uint64_t*) - 1U)) & ~(sizeof(uint64_t*) - 1U);
+	return (size + (sizeof(uint64_t *) - 1U)) & ~(sizeof(uint64_t *) - 1U);
 }
 
 static inline size_t
@@ -111,7 +110,8 @@ shm_map_open(const char name[], shm_t *shm)
 			break;
 		}
 
-		void *map = mmap(NULL, sizeof(shm_header_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		void *map =
+		    mmap(NULL, sizeof(shm_header_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		if (map == MAP_FAILED) {
 			close(fd);
 			result = -1;
@@ -130,7 +130,8 @@ shm_map_open(const char name[], shm_t *shm)
 
 		munmap(map, sizeof(shm_header_t));
 
-		map = mmap(NULL, calc_shm_size(header.size, SHM_COPIES), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		map = mmap(NULL, calc_shm_size(header.size, SHM_COPIES), PROT_READ | PROT_WRITE,
+			   MAP_SHARED, fd, 0);
 		close(fd);
 		if (map == MAP_FAILED) {
 			result = -1;
@@ -168,7 +169,7 @@ shm_map_read(shm_t *shm, void **data)
 			uint64_t *u64;
 		} p;
 		p.h = &hdr[1];
-		*data = &p.u64[(hdr->slot[slot].offset) / sizeof(uint64_t*)];
+		*data = &p.u64[(hdr->slot[slot].offset) / sizeof(uint64_t *)];
 	}
 
 	return result;
@@ -195,7 +196,7 @@ shm_map_write(shm_t *shm, void *data, size_t size)
 		} p;
 		p.h = &hdr[1];
 		void *dst;
-		dst = &p.u64[(hdr->slot[slot].offset) / sizeof(uint64_t*)];
+		dst = &p.u64[(hdr->slot[slot].offset) / sizeof(uint64_t *)];
 
 		memcpy(dst, data, size);
 

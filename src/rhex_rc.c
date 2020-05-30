@@ -37,7 +37,9 @@ rc_main(void)
 
 	int result;
 
-	wfb_rx_t rc_rx = {0,};
+	wfb_rx_t rc_rx = {
+	    0,
+	};
 	const char *if_list[] = {"00e08632035b"};
 	result = wfb_rx_init(&rc_rx, 1U, if_list, 30);
 	if (result != 0) {
@@ -59,12 +61,15 @@ rc_main(void)
 
 		int8_t best_dbm = -127;
 
-		int n = select(30, &readset, NULL, NULL, &to); // TODO: check what the 30 does exactly
+		int n =
+		    select(30, &readset, NULL, NULL, &to); // TODO: check what the 30 does exactly
 
 		if (n > 0) {
 			for (i = 0; i < rc_rx.count; i++) {
 				if (FD_ISSET(rc_rx.iface[i].selectable_fd, &readset)) {
-					wfb_rx_packet_t rx_data = {0,};
+					wfb_rx_packet_t rx_data = {
+					    0,
+					};
 
 					if (wfb_rx_packet(&rc_rx.iface[i], &rx_data)) {
 						struct _r {
@@ -82,18 +87,25 @@ rc_main(void)
 
 						r.u8 = rx_data.data;
 
-						if ((uint32_t)(r.r->seqno - last_seqno) < (UINT32_MAX / 2U)) {
+						if ((uint32_t)(r.r->seqno - last_seqno) <
+						    (UINT32_MAX / 2U)) {
 							r.r->rc2 -= 1500;
 							r.r->rc3 -= 1500;
 
-							if ((uint32_t)(r.r->seqno - last_seqno) > 1U) {
-								rc_status.lost_packet_cnt += (uint32_t)(r.r->seqno - last_seqno);
+							if ((uint32_t)(r.r->seqno - last_seqno) >
+							    1U) {
+								rc_status.lost_packet_cnt +=
+								    (uint32_t)(r.r->seqno -
+									       last_seqno);
 							}
 
-							//printf("recv rc -%idbm %u, rc2=%i, rc3=%i\n", rx_data.dbm, r.r->seqno, r.r->rc2, r.r->rc3);
+							// printf("recv rc -%idbm %u, rc2=%i,
+							// rc3=%i\n", rx_data.dbm, r.r->seqno,
+							// r.r->rc2, r.r->rc3);
 
 							rc_data.speed = (float)r.r->rc2 / 500.0f;
-							shm_map_write(&rc_shm, &rc_data, sizeof(rc_data));
+							shm_map_write(&rc_shm, &rc_data,
+								      sizeof(rc_data));
 
 							rc_status.received_packet_cnt++;
 						}

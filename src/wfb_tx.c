@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
-
 #include <sys/time.h>
 
 #include <log.h>
@@ -56,7 +55,7 @@ static uint8_t packet_buffer_rea[402];
 struct header_s {
 	uint32_t seqnumber;
 	uint16_t length;
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 static struct header_s header;
 
@@ -94,13 +93,13 @@ open_sock(const char ifname[])
 
 	memcpy(ll_addr.sll_addr, ifr.ifr_hwaddr.sa_data, ETH_ALEN);
 
-	if (bind (sock, (struct sockaddr *)&ll_addr, sizeof(ll_addr)) == -1) {
+	if (bind(sock, (struct sockaddr *)&ll_addr, sizeof(ll_addr)) == -1) {
 		log_err("bind failed");
 		close(sock);
 		exit(1);
 	}
 
-	if (sock == -1 ) {
+	if (sock == -1) {
 		log_err("Cannot open socket");
 		log_inf("Must be root with an 802.11 card with RFMON enabled");
 		exit(1);
@@ -109,49 +108,46 @@ open_sock(const char ifname[])
 	return sock;
 }
 
-static uint8_t u8aRadiotapHeader[] = {
-	0x00, 0x00,		/**< @brief radiotap version */
-	0x0c, 0x00,		/**< @brief radiotap header length */
-	0x04, 0x80, 0x00, 0x00,	/**< @brief radiotap present flags */
-	0x00,			/**< @brief datarate (will be overwritten later) */
-	0x00,
-	0x00, 0x00
-};
+static uint8_t u8aRadiotapHeader[] = {0x00, 0x00,	     /**< @brief radiotap version */
+				      0x0c, 0x00,	     /**< @brief radiotap header length */
+				      0x04, 0x80, 0x00, 0x00, /**< @brief radiotap present flags */
+				      0x00, /**< @brief datarate (will be overwritten later) */
+				      0x00, 0x00, 0x00};
 
 static uint8_t u8aRadiotapHeader80211n[] = {
-	0x00, 0x00, 		/**< @brief radiotap version */
-	0x0d, 0x00, 		/**< @brief radiotap header length */
-	0x00, 0x80, 0x08, 0x00, /**< @brief radiotap present flags (tx flags, mcs) */
-	0x08, 0x00, 		/**< @brief tx-flag */
-	0x37, 			/**< @brief mcs have: bw, gi, stbc, fec */
-	0x30,			/**< @brief mcs: 20MHz bw, long guard interval, stbc, ldpc */
-	0x00,			/**< @brief mcs index 0 (speed level, will be overwritten later) */
+    0x00, 0x00,		    /**< @brief radiotap version */
+    0x0d, 0x00,		    /**< @brief radiotap header length */
+    0x00, 0x80, 0x08, 0x00, /**< @brief radiotap present flags (tx flags, mcs) */
+    0x08, 0x00,		    /**< @brief tx-flag */
+    0x37,		    /**< @brief mcs have: bw, gi, stbc, fec */
+    0x30,		    /**< @brief mcs: 20MHz bw, long guard interval, stbc, ldpc */
+    0x00,		    /**< @brief mcs index 0 (speed level, will be overwritten later) */
 };
 
 static uint8_t u8aIeeeHeader_data[] = {
-	0x08, 0x02, 0x00, 0x00, 		/**< @brief frame control field (2 bytes), duration (2 bytes) */
-	0xff, 0x00, 0x00, 0x00, 0x00, 0x00,	/**< @brief 1st byte of MAC will be overwritten with encoded port */
-	0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
-	0x13, 0x22, 0x33, 0x44, 0x55, 0x66,	/**< @brief mac */
-	0x00, 0x00 				/**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi chip) */
+    0x08, 0x02, 0x00, 0x00, /**< @brief frame control field (2 bytes), duration (2 bytes) */
+    0xff, 0x00, 0x00, 0x00,
+    0x00, 0x00, /**< @brief 1st byte of MAC will be overwritten with encoded port */
+    0x13, 0x22, 0x33, 0x44,
+    0x55, 0x66, /**< @brief mac */
+    0x13, 0x22, 0x33, 0x44,
+    0x55, 0x66, /**< @brief mac */
+    0x00, 0x00  /**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi
+		   chip) */
 };
 
 static uint8_t u8aIeeeHeader_data_short[] = {
-	0x08, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
-	0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
+    0x08, 0x01, 0x00, 0x00, /**< @brief frame control field (2 bytes), duration (2 bytes) */
+    0xff		    /**< @brief 1st byte of MAC will be overwritten with encoded port */
 };
 
 static uint8_t u8aIeeeHeader_rts[] = {
-	0xb4, 0x01, 0x00, 0x00,	/**< @brief frame control field (2 bytes), duration (2 bytes) */
-	0xff			/**< @brief 1st byte of MAC will be overwritten with encoded port */
+    0xb4, 0x01, 0x00, 0x00, /**< @brief frame control field (2 bytes), duration (2 bytes) */
+    0xff		    /**< @brief 1st byte of MAC will be overwritten with encoded port */
 };
 
-static uint8_t dummydata[] = {
-	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-	0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
-	0xdd, 0xdd, 0xdd, 0xdd
-};
+static uint8_t dummydata[] = {0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+			      0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd};
 
 int flagHelp = 0;
 
@@ -173,10 +169,12 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 
 			if (len < 18U) { // pad to minimum length
 				padlen = 18U - len;
-				memcpy(packet_buffer_ral + headers_ralink_len + 6 + len, dummydata, padlen);
+				memcpy(packet_buffer_ral + headers_ralink_len + 6 + len, dummydata,
+				       padlen);
 			}
 
-			if (write(wfb_tx->sock[i], &packet_buffer_ral, headers_ralink_len + 6 + len + padlen) < 0) {
+			if (write(wfb_tx->sock[i], &packet_buffer_ral,
+				  headers_ralink_len + 6 + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
@@ -189,10 +187,12 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 			memcpy(packet_buffer_ath + headers_atheros_len + 6, data, len);
 			if (len < 5U) {
 				padlen = 5U - len;
-				memcpy(packet_buffer_ath + headers_atheros_len + 6 + len, dummydata, padlen);
+				memcpy(packet_buffer_ath + headers_atheros_len + 6 + len, dummydata,
+				       padlen);
 			}
 
-			if (write(wfb_tx->sock[i], &packet_buffer_ath, headers_atheros_len + 6 + len + padlen) < 0) {
+			if (write(wfb_tx->sock[i], &packet_buffer_ath,
+				  headers_atheros_len + 6 + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
@@ -204,10 +204,12 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 			memcpy(packet_buffer_rea + headers_Realtek_len + 6, data, len);
 			if (len < 5U) { // if telemetry payload is too short, pad to minimum length
 				padlen = 5U - len;
-				memcpy(packet_buffer_rea + headers_Realtek_len + 6 + len, dummydata, padlen);
+				memcpy(packet_buffer_rea + headers_Realtek_len + 6 + len, dummydata,
+				       padlen);
 			}
 
-			if (write(wfb_tx->sock[i], &packet_buffer_rea, headers_Realtek_len + 6 + len + padlen) < 0) {
+			if (write(wfb_tx->sock[i], &packet_buffer_rea,
+				  headers_Realtek_len + 6 + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
@@ -227,7 +229,6 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 	if (wfb_tx->pcnt % 128 == 0) {
 		log_inf("%d packets sent", wfb_tx->pcnt);
 	}
-
 }
 
 uint64_t
@@ -253,7 +254,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 	size_t num_interfaces = 0;
 
 	for (i = 0; (i < num_if) && (num_interfaces < MAX_ADAP); i++) {
-		FILE* procfile;
+		FILE *procfile;
 		char line[100];
 		char path[100];
 
@@ -276,13 +277,12 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 		}
 		fclose(procfile);
 
-		if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0 || (
-				strncmp(line, "DRIVER=8812au",    13) == 0 ||
-				strncmp(line, "DRIVER=8814au",    13) == 0 ||
-				strncmp(line, "DRIVER=rtl8812au", 16) == 0 ||
-				strncmp(line, "DRIVER=rtl8814au", 16) == 0 ||
-				strncmp(line, "DRIVER=rtl88xxau", 16) == 0))
-		{
+		if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0 ||
+		    (strncmp(line, "DRIVER=8812au", 13) == 0 ||
+		     strncmp(line, "DRIVER=8814au", 13) == 0 ||
+		     strncmp(line, "DRIVER=rtl8812au", 16) == 0 ||
+		     strncmp(line, "DRIVER=rtl8814au", 16) == 0 ||
+		     strncmp(line, "DRIVER=rtl88xxau", 16) == 0)) {
 			if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0) {
 				log_inf("tx_telemetry: Atheros card detected");
 				wfb_tx->type[num_interfaces] = 1;
@@ -298,7 +298,8 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 		wfb_tx->sock[wfb_tx->count] = open_sock(interfaces[i]);
 		wfb_tx->count++;
 
-		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi USB flakiness
+		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi
+			       // USB flakiness
 	}
 
 	if (result != 0) {
@@ -348,26 +349,34 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 	u8aIeeeHeader_data_short[4] = port_encoded;
 
 	// for Atheros use data frames if CTS protection enabled or rts if disabled
-	// CTS protection causes R/C transmission to stop for some reason, always use rts frames (i.e. no cts protection)
-	//param_cts = 0;
+	// CTS protection causes R/C transmission to stop for some reason, always use rts frames
+	// (i.e. no cts protection)
+	// param_cts = 0;
 	if (param_cts == 1) { // use data frames
-		memcpy(headers_atheros, u8aRadiotapHeader, sizeof(u8aRadiotapHeader)); // radiotap header
-		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data, sizeof(u8aIeeeHeader_data)); // ieee header
+		memcpy(headers_atheros, u8aRadiotapHeader,
+		       sizeof(u8aRadiotapHeader)); // radiotap header
+		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data,
+		       sizeof(u8aIeeeHeader_data)); // ieee header
 		headers_atheros_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data);
 	} else { // use rts frames
-		memcpy(headers_atheros, u8aRadiotapHeader, sizeof(u8aRadiotapHeader)); // radiotap header
-		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_rts, sizeof(u8aIeeeHeader_rts)); // ieee header
+		memcpy(headers_atheros, u8aRadiotapHeader,
+		       sizeof(u8aRadiotapHeader)); // radiotap header
+		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_rts,
+		       sizeof(u8aIeeeHeader_rts)); // ieee header
 		headers_atheros_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_rts);
 	}
 
 	// for Ralink always use data short
-	memcpy(headers_ralink, u8aRadiotapHeader, sizeof(u8aRadiotapHeader));// radiotap header
-	memcpy(headers_ralink + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data_short, sizeof(u8aIeeeHeader_data_short));// ieee header
+	memcpy(headers_ralink, u8aRadiotapHeader, sizeof(u8aRadiotapHeader)); // radiotap header
+	memcpy(headers_ralink + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data_short,
+	       sizeof(u8aIeeeHeader_data_short)); // ieee header
 	headers_ralink_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data_short);
 
 	// for Realtek use rts frames
-	memcpy(headers_Realtek, u8aRadiotapHeader80211n, sizeof(u8aRadiotapHeader80211n)); // radiotap header
-	memcpy(headers_Realtek + sizeof(u8aRadiotapHeader80211n), u8aIeeeHeader_rts, sizeof(u8aIeeeHeader_rts)); // ieee header
+	memcpy(headers_Realtek, u8aRadiotapHeader80211n,
+	       sizeof(u8aRadiotapHeader80211n)); // radiotap header
+	memcpy(headers_Realtek + sizeof(u8aRadiotapHeader80211n), u8aIeeeHeader_rts,
+	       sizeof(u8aIeeeHeader_rts)); // ieee header
 	headers_Realtek_len = sizeof(u8aRadiotapHeader80211n) + sizeof(u8aIeeeHeader_rts);
 
 	// radiotap and ieee headers

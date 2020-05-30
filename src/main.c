@@ -6,15 +6,12 @@
  * @brief Точка входа сервиса, основные функции
  */
 
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <gps.h>
 #include <log.h>
 #include <motion.h>
+#include <rhex_rc.h>
 #include <sensors.h>
 #include <telemetry.h>
-#include <rhex_rc.h>
 #include <timerfd.h>
 
 #define SERVICES_MAX (32U)
@@ -60,16 +57,12 @@ start_microservices(void)
 			int (*main)(void);
 		} svc[SERVICES_MAX];
 		size_t count;
-	} svc_list = {
-		{
-			{"gps", 	gps_init,	gps_main},
-			{"sensors",	sensors_init,	sensors_main},
-			{"motion",	motion_init,	motion_main},
-			{"telemetry",	telemetry_init,	telemetry_main},
-			{"rc",		rc_init,	rc_main}
-		},
-		5U
-	};
+	} svc_list = {{{"gps", gps_init, gps_main},
+		       {"sensors", sensors_init, sensors_main},
+		       {"motion", motion_init, motion_main},
+		       {"telemetry", telemetry_init, telemetry_main},
+		       {"rc", rc_init, rc_main}},
+		      5U};
 
 	size_t i;
 

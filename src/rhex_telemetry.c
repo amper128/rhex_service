@@ -123,7 +123,8 @@ telemetry_main(void)
 			read_gps_status(&vot);
 			read_sensors_status(&vot);
 
-			vot.CRC = vt_crc16((uint8_t *)&vot, offsetof(vector_telemetry_t, CRC), 0xFFFFU);
+			vot.CRC =
+			    vt_crc16((uint8_t *)&vot, offsetof(vector_telemetry_t, CRC), 0xFFFFU);
 
 			wfb_tx_send(&telemetry_tx, seqno++, (uint8_t *)&vot, sizeof(vot));
 		}

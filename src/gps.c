@@ -7,17 +7,16 @@
  */
 
 #include <fcntl.h>
-#include <termios.h>
 #include <minmea.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/select.h>
+#include <termios.h>
 
 #include <gps.h>
 #include <log.h>
 #include <sharedmem.h>
 
-static gps_status_t tmp_gps_status;;
+static gps_status_t tmp_gps_status;
+;
 
 typedef struct {
 	unsigned int speed;
@@ -27,29 +26,13 @@ typedef struct {
 static shm_t gps_shm;
 
 static const speed_map speeds[] = {
-	{B0,		0},
-	{B50,		50},
-	{B75,		75},
-	{B110,		110},
-	{B134,		134},
-	{B150,		150},
-	{B200,		200},
-	{B300,		300},
-	{B600,		600},
-	{B1200,		1200},
-	{B1800,		1800},
-	{B2400,		2400},
-	{B4800,		4800},
-	{B9600,		9600},
-	{B19200,	19200},
-	{B38400,	38400},
-	{B57600,	57600},
-	{B115200,	115200},
-	{B230400,	230400},
-	{B460800,	460800},
+    {B0, 0},	 {B50, 50},       {B75, 75},	 {B110, 110},       {B134, 134},
+    {B150, 150},     {B200, 200},     {B300, 300},       {B600, 600},       {B1200, 1200},
+    {B1800, 1800},   {B2400, 2400},   {B4800, 4800},     {B9600, 9600},     {B19200, 19200},
+    {B38400, 38400}, {B57600, 57600}, {B115200, 115200}, {B230400, 230400}, {B460800, 460800},
 };
 
-#define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+#define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
 enum { NUM_SPEEDS = COUNT_OF(speeds) };
 
@@ -82,7 +65,7 @@ int2baud(unsigned int value)
 }
 
 static int
-serial_open(const char* name, const int baud)
+serial_open(const char *name, const int baud)
 {
 	int fd = -1;
 
@@ -96,15 +79,16 @@ serial_open(const char* name, const int baud)
 	}
 
 	// disable echo on serial lines
-	if ( isatty( fd ) ) {
+	if (isatty(fd)) {
 		struct termios ios;
 		speed_t speed;
 
-		tcgetattr( fd, &ios );
-		ios.c_lflag = 0;			/* disable ECHO, ICANON, etc... */
-		ios.c_oflag &= (~ONLCR);		/* Stop \n -> \r\n translation on output */
-		ios.c_iflag &= (~(ICRNL | INLCR));	/* Stop \r -> \n & \n -> \r translation on input */
-		ios.c_iflag |= (IGNCR | IXOFF);		/* Ignore \r & XON/XOFF on input */
+		tcgetattr(fd, &ios);
+		ios.c_lflag = 0;	 /* disable ECHO, ICANON, etc... */
+		ios.c_oflag &= (~ONLCR); /* Stop \n -> \r\n translation on output */
+		ios.c_iflag &=
+		    (~(ICRNL | INLCR));		/* Stop \r -> \n & \n -> \r translation on input */
+		ios.c_iflag |= (IGNCR | IXOFF); /* Ignore \r & XON/XOFF on input */
 
 		speed = int2baud(baud);
 
@@ -113,7 +97,7 @@ serial_open(const char* name, const int baud)
 			cfsetospeed(&ios, speed);
 		}
 
-		tcsetattr( fd, TCSANOW, &ios );
+		tcsetattr(fd, TCSANOW, &ios);
 	}
 
 	return fd;
@@ -167,7 +151,7 @@ open_gps(const char *device, int baud)
 
 	gps_fd = serial_open(device, baud);
 	if (gps_fd < 0) {
-        	log_err("could not open gps serial device %s: %s", device, strerror(errno));
+		log_err("could not open gps serial device %s: %s", device, strerror(errno));
 		return -1;
 	}
 
@@ -179,7 +163,7 @@ parse_line(const char *line)
 {
 	enum minmea_sentence_id id;
 
-	//log_dbg("parse '%s'", line);
+	// log_dbg("parse '%s'", line);
 
 	id = minmea_sentence_id(line, false);
 
@@ -187,7 +171,7 @@ parse_line(const char *line)
 	case MINMEA_SENTENCE_GGA: {
 		struct minmea_sentence_gga frame;
 		if (minmea_parse_gga(&frame, line)) {
-			//log_dbg("$xxGGA: fix quality: %d", frame.fix_quality);
+			// log_dbg("$xxGGA: fix quality: %d", frame.fix_quality);
 			if (frame.fix_quality > 0) {
 				tmp_gps_status.has_fix = true;
 
@@ -214,7 +198,8 @@ parse_line(const char *line)
 			/*log_dbg("$xxGSV: message %d of %d", frame.msg_nr, frame.total_msgs);
 			log_dbg("$xxGSV: sattelites in view: %d", frame.total_sats);
 			for (int i = 0; i < 4; i++) {
-				log_dbg("$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d dbm",
+				log_dbg("$xxGSV: sat nr %d, elevation: %d, azimuth: %d, snr: %d
+			dbm",
 					frame.sats[i].nr,
 					frame.sats[i].elevation,
 					frame.sats[i].azimuth,
@@ -251,7 +236,7 @@ parse_line(const char *line)
 	}
 
 	default:
-		//log_warn("unknown GP '%s'", line);
+		// log_warn("unknown GP '%s'", line);
 		break;
 	}
 }

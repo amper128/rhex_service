@@ -10,8 +10,8 @@
 #include <wiringPiI2C.h>
 
 #include <log.h>
-#include <sharedmem.h>
 #include <sensors.h>
+#include <sharedmem.h>
 #include <timerfd.h>
 
 static shm_t sensors_shm;
@@ -68,9 +68,15 @@ sensors_main(void)
 		return 1;
 	}
 
-	filter_t f_x = {0,};
-	filter_t f_y = {0,};
-	filter_t f_z = {0,};
+	filter_t f_x = {
+	    0,
+	};
+	filter_t f_y = {
+	    0,
+	};
+	filter_t f_z = {
+	    0,
+	};
 
 	while (wait_cycle(timerfd)) {
 		sensors_status_t s;
