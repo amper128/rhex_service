@@ -6,13 +6,13 @@ CFLAGS := $(CFLAGS) $(CPPFLAGS) -Iinclude/
 
 all: rhex_service
 
-rhex_service: canbus.o crc.o gps.o log.o main.o minmea.o motion.o \
-    radiotap/radiotap_rc.o rhex_telemetry.o rhex_rc.o sensors.o \
-    sharedmem.o timerfd.o wfb_rx.o wfb_tx.o
+rhex_service: src/canbus.o src/crc.o src/gps.o src/log.o src/main.o \
+    src/minmea.o src/motion.o src/radiotap/radiotap_rc.o src/rhex_telemetry.o \
+    src/rhex_rc.o src/sensors.o src/sharedmem.o src/timerfd.o src/wfb_rx.o src/wfb_tx.o
 	gcc -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	gcc $(CFLAGS) -c -o $@ $< $(CPPFLAGS)
 
 clean:
-	rm -f rhex_service *~ *.o */*.o
+	rm -f rhex_service *~ *.o */*.o */*/*.o
