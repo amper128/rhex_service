@@ -12,6 +12,17 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+typedef unsigned int u32;
+typedef unsigned short u16;
+typedef unsigned char u8;
+typedef u32 __le32;
+typedef unsigned long ulong;
+
+#define	unlikely(x) (x)
 
 #define le16_to_cpu le16toh
 #define le32_to_cpu le32toh

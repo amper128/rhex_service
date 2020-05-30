@@ -7,7 +7,6 @@
  */
 
 #include <sys/timerfd.h>
-#include <unistd.h>
 
 #include <log.h>
 #include <timerfd.h>

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <can_proto.h>
+
 struct can_packet_t {
 	can_msg_t msg;
 	uint8_t len;

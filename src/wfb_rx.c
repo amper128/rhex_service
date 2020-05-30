@@ -21,19 +21,15 @@
  *   with this program; if not, write to the Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#include <std_defs.h>
+
+#include <log.h>
+#include <wfb_rx.h>
 
 #include <radiotap/radiotap_rc.h>
 #include <radiotap/radiotap_iter.h>
 
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-
 #include <pcap.h>
-
-#include <log.h>
-#include <wfb_rx.h>
 
 
 static const struct radiotap_align_size align_size_000000_00[] = {

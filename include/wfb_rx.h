@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <platform.h>
 #include <pcap.h>
 
 #define INTERFACES_MAX (8U)

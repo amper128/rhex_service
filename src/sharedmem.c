@@ -6,7 +6,6 @@
  * @brief Функции работы с общей памятью
  */
 
-#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>

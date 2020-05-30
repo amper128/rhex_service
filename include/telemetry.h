@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <platform.h>
+
 //#define VOT_SC (0xB01EDEADU)
 #define VOT_SC (0xADDE1EB0U)
 #define VOT_CRC_Init 0xFFFF

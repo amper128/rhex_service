@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <platform.h>
 
 #define TIME_NS (1ULL)
 #define TIME_US (1000ULL)

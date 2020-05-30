@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
+#include <platform.h>
 
 typedef struct {
 	uint64_t guard;

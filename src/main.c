@@ -6,7 +6,6 @@
  * @brief Точка входа сервиса, основные функции
  */
 
-#include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
 

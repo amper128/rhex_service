@@ -7,7 +7,6 @@
  */
 
 #include <math.h>
-#include <stddef.h>
 #include <wiringPiI2C.h>
 
 #include <log.h>
