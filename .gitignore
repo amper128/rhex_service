@@ -1,4 +1,5 @@
 #ignore build files
+rhex_service
 *.o
 # ignore qtcreator files
 *.cflags
