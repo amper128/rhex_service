@@ -6,7 +6,7 @@
  * @brief Прием данных wifi broadcast
  */
 
-// Based on wifibroadcast rx by Befinitiv. Mavlink code contributed by dino_de. Licensed under GPL2
+// Based on wifibroadcast rx by Befinitiv. Licensed under GPL2
 /*
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
