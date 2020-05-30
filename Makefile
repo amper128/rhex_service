@@ -6,7 +6,9 @@ CFLAGS := $(CFLAGS) $(CPPFLAGS) -Iinclude/
 
 all: rhex_service
 
-rhex_service: canbus.o crc.o gps.o log.o main.o minmea.o motion.o radiotap/radiotap.o rhex_telemetry.o rhex_rc.o sensors.o sharedmem.o timerfd.o wfb_rx.o wfb_tx.o
+rhex_service: canbus.o crc.o gps.o log.o main.o minmea.o motion.o \
+    radiotap/radiotap_rc.o rhex_telemetry.o rhex_rc.o sensors.o \
+    sharedmem.o timerfd.o utils.o wfb_rx.o wfb_tx.o
 	gcc -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
