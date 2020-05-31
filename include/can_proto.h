@@ -32,6 +32,10 @@ typedef struct {
 
 #define MSG_BROADCAST		(0x0U) /**< @brief широковещательный адрес */
 
+#define MSG_TYPE_REQUEST	(0x0U) /**< @brief тип сообщения - запрос */
+#define MSG_TYPE_RESPONSE	(0x1U) /**< @brief тип сообщения - ответ */
+#define MSG_TYPE_ERROR		(0x1U) /**< @brief флаг ошибки */
+
 /**
  * @brief Список ID команд, общие для всех модулей
  */
