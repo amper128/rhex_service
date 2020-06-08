@@ -13,6 +13,7 @@
 #include <sensors.h>
 #include <sharedmem.h>
 #include <timerfd.h>
+#include <tlc1543.h>
 
 static shm_t sensors_shm;
 
@@ -22,6 +23,11 @@ typedef struct {
 	double values[FILTER_CNT];
 	size_t index;
 } filter_t;
+
+typedef struct {
+	double values[64U];
+	size_t index;
+} filter64_t;
 
 static double
 filter_value(double val, filter_t *filter)
@@ -39,6 +45,24 @@ filter_value(double val, filter_t *filter)
 	}
 
 	return (sum / (double)FILTER_CNT);
+}
+
+static double
+filter64_value(double val, filter64_t *filter)
+{
+	size_t slot = filter->index % 64U;
+
+	filter->values[slot] = val;
+
+	filter->index++;
+
+	size_t i;
+	double sum = 0.0;
+	for (i = 0U; i < 64U; i++) {
+		sum += filter->values[i];
+	}
+
+	return (sum / (double)64U);
 }
 
 int
@@ -68,6 +92,9 @@ sensors_main(void)
 		return 1;
 	}
 
+	TLC1543 tlc1543;
+	tlc1543_init(&tlc1543, 1, 1000000, 27);
+
 	filter_t f_x = {
 	    0,
 	};
@@ -78,6 +105,12 @@ sensors_main(void)
 	    0,
 	};
 
+	filter64_t adc = {
+	    0,
+	};
+
+	int values[16] = {0};
+
 	while (wait_cycle(timerfd)) {
 		sensors_status_t s;
 
@@ -85,6 +118,16 @@ sensors_main(void)
 		int X;
 		int Y;
 		int Z;
+
+		tlc1543_read_all(&tlc1543, values);
+
+		double v;
+
+		v = (double)tlc1543_read(&tlc1543, 8);
+
+		v = filter64_value(v, &adc);
+		v = v / 1024.0 * 22.57;
+		// log_dbg("adc: %3.2f", v);
 
 		X = wiringPiI2CReadReg16(fd, REG_DATA_X_LOW);
 		Y = wiringPiI2CReadReg16(fd, REG_DATA_Y_LOW);
@@ -107,6 +150,7 @@ sensors_main(void)
 		s.angle_x = angleX * 180.0 / M_PI;
 		s.angle_y = angleY * 180.0 / M_PI;
 		s.angle_z = angleZ * 180.0 / M_PI;
+		s.vbat = v;
 
 		shm_map_write(&sensors_shm, &s, sizeof(s));
 	}

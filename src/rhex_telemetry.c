@@ -71,6 +71,9 @@ read_sensors_status(vector_telemetry_t *vot)
 	vot->RollDegrees = (int16_t)(conv * 10.0);
 	conv = p.s->angle_z;
 	vot->YawDegrees = (int16_t)(conv * 10.0);
+
+	conv = p.s->vbat;
+	vot->PackVoltageX100 = (int16_t)(conv * 100.0);
 }
 
 int
@@ -114,8 +117,6 @@ telemetry_main(void)
 		vector_telemetry_t vot;
 		memset((uint8_t *)&vot, 0, sizeof(vot));
 		vot.StartCode = VOT_SC;
-
-		vot.PackVoltageX100 = 1602;
 
 		uint32_t seqno = 0U;
 

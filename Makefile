@@ -8,7 +8,8 @@ all: rhex_service
 
 rhex_service: src/canbus.o src/crc.o src/gps.o src/log.o src/main.o \
     src/minmea.o src/motion.o src/radiotap/radiotap_rc.o src/rhex_telemetry.o \
-    src/rhex_rc.o src/sensors.o src/sharedmem.o src/timerfd.o src/wfb_rx.o src/wfb_tx.o
+    src/rhex_rc.o src/sensors.o src/sharedmem.o src/timerfd.o src/tlc1543.o \
+    src/wfb_rx.o src/wfb_tx.o
 	gcc -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
