@@ -134,8 +134,18 @@ make_step(float speed, float steering)
 	turn_factor = steering;
 
 	static const float turn_sd_max = 0.5f;
-	float sd_start = (turn_factor * turn_sd_max) / 2.0f;
-	float sd_end = 0.5f - sd_start;
+	float sd_start_l = 0.0f;
+	float sd_end_l = 0.5f;
+	float sd_start_r = 0.0f;
+	float sd_end_r = 0.5f;
+
+	if (turn_factor > 0.0f) {
+		sd_start_r = (turn_factor * turn_sd_max) / 2.0f;
+		sd_end_r = 0.5f - sd_start_r;
+	} else {
+		sd_start_l = (-turn_factor * turn_sd_max) / 2.0f;
+		sd_end_l = 0.5f - sd_start_l;
+	}
 
 	/* крутим фазу движения */
 	global_phase += (speed / slowdown) / (float)TICKS;
@@ -157,21 +167,23 @@ make_step(float speed, float steering)
 			leg_phase += 1.0f;
 		}
 
+		float lp1 = leg_phase;
 		/* смещение фазы для поворота */
-		if (leg_phase > 0.0f) {
-			if (drv_status[d].side == LEG_RIGHT) {
-				leg_phase = 2.0f * leg_phase * (sd_end - sd_start);
+		if (drv_status[d].side == LEG_LEFT) {
+			if (lp1 > 0.0f) {
+				leg_phase = 2.0f * lp1 * (sd_end_l - sd_start_l);
 			} else {
-				leg_phase = 2.0f * leg_phase * (1.0f - (sd_end - sd_start));
+				leg_phase = 2.0f * lp1 * (1.0f - (sd_end_l - sd_start_l));
 			}
+			leg_phase += sd_start_l;
 		} else {
-			if (drv_status[d].side == LEG_RIGHT) {
-				leg_phase = 2.0f * leg_phase * (1.0f - (sd_end - sd_start));
+			if (lp1 > 0.0f) {
+				leg_phase = 2.0f * lp1 * (sd_end_r - sd_start_r);
 			} else {
-				leg_phase = 2.0f * leg_phase * (sd_end - sd_start);
+				leg_phase = 2.0f * lp1 * (1.0f - (sd_end_r - sd_start_r));
 			}
+			leg_phase += sd_start_r;
 		}
-		leg_phase += sd_start;
 
 		/* ограничиваем от -0.5 до 0.5 */
 		if (leg_phase > 0.5f) {
