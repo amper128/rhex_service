@@ -7,8 +7,8 @@
  */
 
 #include <math.h>
-#include <wiringPiI2C.h>
 
+#include <i2c.h>
 #include <log.h>
 #include <sensors.h>
 #include <sharedmem.h>
@@ -79,12 +79,12 @@ sensors_main(void)
 	shm_map_open("shm_sensors", &sensors_shm);
 
 	int fd;
-	fd = wiringPiI2CSetupInterface("/dev/i2c-1", DEVICE_ID);
+	fd = i2c_open_dev("/dev/i2c-1", DEVICE_ID);
 	if (fd == -1) {
 		log_err("Cannot setup i2c");
 		return 1;
 	}
-	wiringPiI2CWriteReg8(fd, REG_POWER_CTL, 0b00001000);
+	i2c_write_reg_8(fd, REG_POWER_CTL, 0b00001000);
 
 	int timerfd;
 	timerfd = timerfd_init(50ULL * TIME_MS, 50ULL * TIME_MS);
@@ -129,9 +129,9 @@ sensors_main(void)
 		v = v / 1024.0 * 22.57;
 		// log_dbg("adc: %3.2f", v);
 
-		X = wiringPiI2CReadReg16(fd, REG_DATA_X_LOW);
-		Y = wiringPiI2CReadReg16(fd, REG_DATA_Y_LOW);
-		Z = wiringPiI2CReadReg16(fd, REG_DATA_Z_LOW);
+		X = i2c_read_reg_16(fd, REG_DATA_X_LOW);
+		Y = i2c_read_reg_16(fd, REG_DATA_Y_LOW);
+		Z = i2c_read_reg_16(fd, REG_DATA_Z_LOW);
 
 		X = -(~(int16_t)X + 1);
 		Y = -(~(int16_t)Y + 1);
