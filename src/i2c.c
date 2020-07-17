@@ -55,6 +55,15 @@ i2c_write_reg_8(int fd, int reg, int value)
 }
 
 int
+i2c_write_reg_16(int fd, int reg, int value)
+{
+	union i2c_smbus_data data;
+
+	data.byte = value;
+	return i2c_smbus_access(fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_WORD_DATA, &data);
+}
+
+int
 i2c_read_reg_8(int fd, int reg)
 {
 	union i2c_smbus_data data;

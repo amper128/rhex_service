@@ -14,6 +14,8 @@ int i2c_open_dev(const char *device, int devId);
 
 int i2c_write_reg_8(int fd, int reg, int value);
 
+int i2c_write_reg_16(int fd, int reg, int value);
+
 int i2c_read_reg_8(int fd, int reg);
 
 int i2c_read_reg_16(int fd, int reg);
