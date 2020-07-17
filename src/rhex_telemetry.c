@@ -74,6 +74,9 @@ read_sensors_status(vector_telemetry_t *vot)
 
 	conv = p.s->vbat;
 	vot->PackVoltageX100 = (int16_t)(conv * 100.0);
+
+	conv = p.s->curr;
+	vot->PackCurrentX10 = (int16_t)(conv * 10.0);
 }
 
 int
