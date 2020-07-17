@@ -9,11 +9,11 @@
 #include <math.h>
 
 #include <i2c.h>
+#include <ina226.h>
 #include <log.h>
 #include <sensors.h>
 #include <sharedmem.h>
 #include <timerfd.h>
-#include <tlc1543.h>
 
 static shm_t sensors_shm;
 
@@ -92,8 +92,16 @@ sensors_main(void)
 		return 1;
 	}
 
-	TLC1543 tlc1543;
-	tlc1543_init(&tlc1543, 1, 1000000, 27);
+	int ina_fd;
+
+	ina_fd = ina226_open(0x40);
+
+	if (ina_fd == -1) {
+		log_err("cannot connect INA226!");
+		return 1;
+	}
+
+	ina226_set_shunt(ina_fd, 0.01);
 
 	filter_t f_x = {
 	    0,
@@ -105,11 +113,9 @@ sensors_main(void)
 	    0,
 	};
 
-	filter64_t adc = {
+	filter64_t f_vbat = {
 	    0,
 	};
-
-	int values[16] = {0};
 
 	while (wait_cycle(timerfd)) {
 		sensors_status_t s;
@@ -119,15 +125,13 @@ sensors_main(void)
 		int Y;
 		int Z;
 
-		tlc1543_read_all(&tlc1543, values);
-
 		double v;
+		double c;
 
-		v = (double)tlc1543_read(&tlc1543, 8);
+		v = (double)ina226_get_voltage(ina_fd);
+		v = filter64_value(v, &f_vbat);
 
-		v = filter64_value(v, &adc);
-		v = v / 1024.0 * 22.57;
-		// log_dbg("adc: %3.2f", v);
+		c = (double)ina226_get_current(ina_fd);
 
 		X = i2c_read_reg_16(fd, REG_DATA_X_LOW);
 		Y = i2c_read_reg_16(fd, REG_DATA_Y_LOW);
@@ -150,7 +154,8 @@ sensors_main(void)
 		s.angle_x = angleX * 180.0 / M_PI;
 		s.angle_y = angleY * 180.0 / M_PI;
 		s.angle_z = angleZ * 180.0 / M_PI;
-		s.vbat = v;
+		s.vbat = v / 1000.0;
+		s.curr = c / 1000.0;
 
 		shm_map_write(&sensors_shm, &s, sizeof(s));
 	}

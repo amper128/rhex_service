@@ -23,6 +23,8 @@ typedef struct {
 	double angle_y;
 	double angle_z;
 	double vbat;
+	double curr;
+	double pwr;
 } sensors_status_t;
 
 int sensors_init(void);
