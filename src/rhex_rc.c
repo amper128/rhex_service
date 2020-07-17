@@ -104,6 +104,7 @@ rc_main(void)
 							// r.r->rc2, r.r->rc3);
 
 							rc_data.speed = (float)r.r->rc2 / 500.0f;
+							rc_data.steering = (float)r.r->rc3 / 500.0f;
 							shm_map_write(&rc_shm, &rc_data,
 								      sizeof(rc_data));
 
