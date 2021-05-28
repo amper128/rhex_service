@@ -8,15 +8,24 @@
 
 #include <gps.h>
 #include <log.h>
+#include <logger.h>
 #include <motion.h>
 #include <rhex_rc.h>
 #include <sensors.h>
 #include <telemetry.h>
 #include <timerfd.h>
 
+#include <sys/prctl.h>
+
 #define SERVICES_MAX (32U)
 
-static pid_t svc_pids[SERVICES_MAX];
+typedef struct {
+	pid_t pid;
+	const char *name;
+	log_buffer_t *log_buffer;
+} svc_t;
+
+static svc_t svc_list[SERVICES_MAX];
 static size_t svc_count = 0U;
 
 static int
@@ -38,10 +47,16 @@ start_svc(const char name[], int (*entry_point)(void))
 	}
 
 	if (pid == 0) {
+		/* we are new service */
+		prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
+		logger_init(name);
 		exit(entry_point());
 	}
 
-	svc_pids[svc_count] = pid;
+	svc_list[svc_count].pid = pid;
+	svc_list[svc_count].name = name;
+	svc_list[svc_count].log_buffer = get_log_reader(name);
+
 	svc_count++;
 
 	return 0;
@@ -80,7 +95,10 @@ start_microservices(void)
 static void
 main_cycle(void)
 {
-	/* do nothing */
+	size_t i;
+	for (i = 0U; i < svc_count; i++) {
+		log_reader_print(svc_list[i].name, svc_list[i].log_buffer);
+	}
 }
 
 int
@@ -89,9 +107,11 @@ main(int argc, char **argv)
 	(void)argc;
 	(void)argv;
 
+	logger_init("main");
+
 	int timerfd;
 
-	timerfd = timerfd_init(100ULL * TIME_MS, 100ULL * TIME_MS);
+	timerfd = timerfd_init(50ULL * TIME_MS, 50ULL * TIME_MS);
 	if (timerfd < 0) {
 		return 1;
 	}
