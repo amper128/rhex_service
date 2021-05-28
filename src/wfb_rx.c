@@ -32,14 +32,16 @@
 #include <string.h>
 
 static const struct radiotap_align_size align_size_000000_00[] = {
-	[0] =
-	    {
-		.align = 1, .size = 4,
-	    },
-	[52] =
-	    {
-		.align = 1, .size = 4,
-	    },
+    [0] =
+	{
+	    .align = 1,
+	    .size = 4,
+	},
+    [52] =
+	{
+	    .align = 1,
+	    .size = 4,
+	},
 };
 
 static const struct ieee80211_radiotap_namespace vns_array[] = {
@@ -52,7 +54,8 @@ static const struct ieee80211_radiotap_namespace vns_array[] = {
 };
 
 static const struct ieee80211_radiotap_vendor_namespaces vns = {
-    .ns = vns_array, .n_ns = sizeof(vns_array) / sizeof(vns_array[0]),
+    .ns = vns_array,
+    .n_ns = sizeof(vns_array) / sizeof(vns_array[0]),
 };
 
 static void
@@ -86,8 +89,9 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 	ether[0x00:2] == 0x0802 || ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x)",
 	port_encoded);
 	} else {*/
-		sprintf(szProgram, "(ether[0x00:2] == 0x0801 || ether[0x00:2] == 0x0802 || "
-				   "ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x",
+		sprintf(szProgram,
+			"(ether[0x00:2] == 0x0801 || ether[0x00:2] == 0x0802 || "
+			"ether[0x00:4] == 0xb4010000) && ether[0x04:1] == 0x%.2x",
 			port_encoded);
 		//}
 	} else {
