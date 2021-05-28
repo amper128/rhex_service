@@ -261,7 +261,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i]);
 		procfile = fopen(path, "r");
 		if (!procfile) {
-			fprintf(stderr, "ERROR: opening %s failed!\n", path);
+			log_err("opening %s failed!", path);
 			result = -1;
 			break;
 		}

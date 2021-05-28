@@ -13,6 +13,7 @@
 #include <log.h>
 #include <sensors.h>
 #include <sharedmem.h>
+#include <svc_context.h>
 #include <timerfd.h>
 
 static shm_t sensors_shm;
@@ -118,6 +119,10 @@ sensors_main(void)
 	};
 
 	while (wait_cycle(timerfd)) {
+		if (!svc_cycle()) {
+			break;
+		}
+
 		sensors_status_t s;
 
 		double ax, ay, az;

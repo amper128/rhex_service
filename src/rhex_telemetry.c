@@ -13,6 +13,7 @@
 #include <log.h>
 #include <sensors.h>
 #include <sharedmem.h>
+#include <svc_context.h>
 #include <telemetry.h>
 #include <timerfd.h>
 #include <wfb_tx.h>
@@ -124,6 +125,9 @@ telemetry_main(void)
 		uint32_t seqno = 0U;
 
 		while (wait_cycle(timerfd)) {
+			if (!svc_cycle()) {
+				break;
+			}
 			read_gps_status(&vot);
 			read_sensors_status(&vot);
 

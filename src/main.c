@@ -12,6 +12,7 @@
 #include <motion.h>
 #include <rhex_rc.h>
 #include <sensors.h>
+#include <svc_context.h>
 #include <telemetry.h>
 #include <timerfd.h>
 
@@ -22,11 +23,12 @@
 typedef struct {
 	pid_t pid;
 	const char *name;
-	log_buffer_t *log_buffer;
+	svc_context_t *ctx;
 } svc_t;
 
 static svc_t svc_list[SERVICES_MAX];
 static size_t svc_count = 0U;
+static svc_context_t *svc_main;
 
 static int
 start_svc(const char name[], int (*entry_point)(void))
@@ -36,9 +38,14 @@ start_svc(const char name[], int (*entry_point)(void))
 		return -1;
 	}
 
-	pid_t pid;
-
 	log_inf("Starting svc \"%s\"...", name);
+
+	svc_t *svc = &svc_list[svc_count];
+
+	svc->ctx = svc_create_context(name);
+	svc->ctx->log_buffer = logger_create(name);
+
+	pid_t pid;
 
 	pid = fork();
 	if (pid == -1) {
@@ -48,14 +55,14 @@ start_svc(const char name[], int (*entry_point)(void))
 
 	if (pid == 0) {
 		/* we are new service */
+		svc_init_context(svc->ctx);
 		prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
-		logger_init(name);
+		logger_init();
 		exit(entry_point());
 	}
 
-	svc_list[svc_count].pid = pid;
-	svc_list[svc_count].name = name;
-	svc_list[svc_count].log_buffer = get_log_reader(name);
+	svc->pid = pid;
+	svc->name = name;
 
 	svc_count++;
 
@@ -95,9 +102,11 @@ start_microservices(void)
 static void
 main_cycle(void)
 {
+	log_reader_print("main", svc_main->log_buffer);
 	size_t i;
 	for (i = 0U; i < svc_count; i++) {
-		log_reader_print(svc_list[i].name, svc_list[i].log_buffer);
+		svc_list[i].ctx->watchdog = svc_get_time();
+		log_reader_print(svc_list[i].name, svc_list[i].ctx->log_buffer);
 	}
 }
 
@@ -107,7 +116,10 @@ main(int argc, char **argv)
 	(void)argc;
 	(void)argv;
 
-	logger_init("main");
+	svc_main = svc_create_context("main");
+	svc_init_context(svc_main);
+	svc_main->log_buffer = logger_create("main");
+	logger_init();
 
 	int timerfd;
 

@@ -14,6 +14,7 @@
 #include <gps.h>
 #include <log.h>
 #include <sharedmem.h>
+#include <svc_context.h>
 
 static gps_status_t tmp_gps_status;
 ;
@@ -26,9 +27,9 @@ typedef struct {
 static shm_t gps_shm;
 
 static const speed_map speeds[] = {
-    {B0, 0},	 {B50, 50},       {B75, 75},	 {B110, 110},       {B134, 134},
-    {B150, 150},     {B200, 200},     {B300, 300},       {B600, 600},       {B1200, 1200},
-    {B1800, 1800},   {B2400, 2400},   {B4800, 4800},     {B9600, 9600},     {B19200, 19200},
+    {B0, 0},	     {B50, 50},	      {B75, 75},	 {B110, 110},	    {B134, 134},
+    {B150, 150},     {B200, 200},     {B300, 300},	 {B600, 600},	    {B1200, 1200},
+    {B1800, 1800},   {B2400, 2400},   {B4800, 4800},	 {B9600, 9600},	    {B19200, 19200},
     {B38400, 38400}, {B57600, 57600}, {B115200, 115200}, {B230400, 230400}, {B460800, 460800},
 };
 
@@ -269,6 +270,10 @@ gps_main(void)
 	FD_SET(gps_fd, &readfs);
 
 	for (;;) {
+		if (!svc_cycle()) {
+			break;
+		}
+
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 

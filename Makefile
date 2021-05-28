@@ -9,7 +9,7 @@ all: rhex_service
 rhex_service: src/canbus.o src/crc.o src/gps.o src/i2c.o src/ina226.o src/log.o \
     src/logger.o src/main.o src/minmea.o src/motion.o src/radiotap/radiotap_rc.o \
     src/rhex_telemetry.o src/rhex_rc.o src/sensors.o src/sharedmem.o src/spi.o \
-    src/timerfd.o src/wfb_rx.o src/wfb_tx.o
+    src/svc.o src/timerfd.o src/wfb_rx.o src/wfb_tx.o
 	gcc -o $@ $^ $(LDFLAGS)
 
 %.o: %.c Makefile

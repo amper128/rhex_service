@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <stdarg.h>
 #include <stdint.h>
 
 enum log_level {
@@ -40,7 +41,9 @@ typedef struct {
 	struct log_record_t records[LOG_BUFFER_SIZE];
 } log_buffer_t;
 
-int logger_init(const char name[]);
+log_buffer_t *logger_create(const char name[]);
+
+void logger_init(void);
 
 void log_put_record(enum log_level level, const char format[], va_list args);
 

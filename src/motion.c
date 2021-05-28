@@ -11,6 +11,7 @@
 #include <motion.h>
 #include <rhex_rc.h>
 #include <sharedmem.h>
+#include <svc_context.h>
 #include <timerfd.h>
 
 #include <math.h>
@@ -519,6 +520,9 @@ motion_main(void)
 	start_msg();
 
 	while (wait_cycle(timerfd)) {
+		if (!svc_cycle()) {
+			break;
+		}
 		do_motion();
 	}
 

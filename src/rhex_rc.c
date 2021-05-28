@@ -6,8 +6,10 @@
  * @brief Команды управления
  */
 
+#include <log.h>
 #include <rhex_rc.h>
 #include <sharedmem.h>
+#include <svc_context.h>
 #include <wfb_rx.h>
 
 static shm_t rc_shm;
@@ -28,7 +30,7 @@ rc_init(void)
 int
 rc_main(void)
 {
-	printf("RX R/C Telemetry started\n");
+	log_inf("RX R/C Telemetry started\n");
 
 	shm_map_open("shm_rc", &rc_shm);
 	shm_map_open("shm_rc_status", &rc_status_shm);
@@ -49,6 +51,9 @@ rc_main(void)
 	uint32_t last_seqno = 0U;
 
 	for (;;) {
+		if (!svc_cycle()) {
+			break;
+		}
 		struct timeval to;
 		to.tv_sec = 0;
 		to.tv_usec = 1e5; // 100ms timeout

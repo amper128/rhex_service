@@ -14,6 +14,7 @@
 
 #include <log.h>
 #include <logger.h>
+#include <svc_context.h>
 #include <timerfd.h>
 
 #define PR_RED "\x1B[31m"
@@ -122,10 +123,10 @@ log_put_record(enum log_level level, const char format[], va_list args)
 	}
 }
 
-int
-logger_init(const char name[])
+log_buffer_t *
+logger_create(const char name[])
 {
-	int result = -1;
+	log_buffer_t *log = NULL;
 
 	do {
 		char shm_name[256];
@@ -138,25 +139,31 @@ logger_init(const char name[])
 
 		if (ftruncate(fd, sizeof(log_buffer_t)) == -1) {
 			log_err("cannot ftruncate()");
-			result = -1;
+			close(fd);
 			break;
 		}
 
 		void *map =
 		    mmap(NULL, sizeof(log_buffer_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		close(fd);
 		if (map == MAP_FAILED) {
-			close(fd);
 			break;
 		}
 
-		log_buffer = map;
-		log_buffer->head = LOG_BUFFER_SIZE - 2U;
-		log_buffer->tail = LOG_BUFFER_SIZE - 2U;
+		log = (log_buffer_t *)map;
 
-		result = 0;
+		log->head = LOG_BUFFER_SIZE - 2U;
+		log->tail = LOG_BUFFER_SIZE - 2U;
 	} while (false);
 
-	return result;
+	return log;
+}
+
+void
+logger_init(void)
+{
+	const svc_context_t *ctx = get_svc_context();
+	log_buffer = ctx->log_buffer;
 }
 
 log_buffer_t *
@@ -214,5 +221,5 @@ log_reader_print(const char name[], log_buffer_t *log)
 		log->tail = (log->tail + 1U) % LOG_BUFFER_SIZE;
 
 		msg_end();
-	} while (false);
+	} while (log->head != log->tail);
 }
