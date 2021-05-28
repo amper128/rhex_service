@@ -9,6 +9,8 @@
 #include <i2c.h>
 #include <ina226.h>
 
+#include <byteswap.h>
+
 int
 ina226_open(int dev_id)
 {
@@ -27,23 +29,28 @@ ina226_open(int dev_id)
 int
 ina226_reset(int fd)
 {
-	return i2c_write_reg_16(fd, INA226_REG_CONFIG, INA226_RESET);
+	uint16_t reg = bswap_16(INA226_RESET);
+	return i2c_write_reg_16(fd, INA226_REG_CONFIG, reg);
 }
 
 bool
 ina226_ping(int fd)
 {
-	int id;
+	uint16_t id;
 
 	id = i2c_read_reg_16(fd, INA226_REG_ID);
 
-	return (id == INA226_DEVICE_ID);
+	return (bswap_16(id) == INA226_DEVICE_ID);
 }
 
 int
 ina226_set_shunt(int fd, float shunt)
 {
-	return i2c_write_reg_16(fd, INA226_REG_CALIBRATION, INA226_CALIBRATION_REF / shunt);
+	double lsb = 8.0 / 32768;
+	double cal = 0.00512 / (lsb * shunt);
+
+	uint16_t reg = bswap_16((int16_t)cal);
+	return i2c_write_reg_16(fd, INA226_REG_CALIBRATION, reg);
 }
 
 int
@@ -51,7 +58,7 @@ ina226_get_voltage(int fd)
 {
 	int v;
 
-	v = i2c_read_reg_16(fd, INA226_REG_BUSVOLTAGE);
+	v = bswap_16(i2c_read_reg_16(fd, INA226_REG_BUSVOLTAGE));
 
 	v = v + (v >> 2);
 
@@ -63,7 +70,7 @@ ina226_get_shunt_voltage(int fd)
 {
 	int v;
 
-	v = i2c_read_reg_16(fd, INA226_REG_SHUNTVOLTAGE);
+	v = bswap_16(i2c_read_reg_16(fd, INA226_REG_SHUNTVOLTAGE));
 
 	return v;
 }
@@ -73,7 +80,7 @@ ina226_get_current(int fd)
 {
 	int c;
 
-	c = i2c_read_reg_16(fd, INA226_REG_CURRENT);
+	c = bswap_16(i2c_read_reg_16(fd, INA226_REG_CURRENT));
 
 	return c / 8;
 }
@@ -83,7 +90,7 @@ ina226_get_power(int fd)
 {
 	int p;
 
-	p = i2c_read_reg_16(fd, INA226_REG_POWER);
+	p = bswap_16(i2c_read_reg_16(fd, INA226_REG_POWER));
 
 	p = (p * 3) + (p >> 3);
 
