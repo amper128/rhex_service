@@ -90,9 +90,10 @@ rc_main(void)
 					if (wfb_rx_packet(&rc_rx.iface[i], &rx_data)) {
 						struct _r {
 							uint32_t seqno;
-							int16_t data[8];
+							int16_t res;
+							int16_t axis[4];
+							int16_t data[4];
 							int8_t sq;
-							int8_t res[4];
 						};
 
 						union {
@@ -104,8 +105,8 @@ rc_main(void)
 
 						if ((uint32_t)(r.r->seqno - last_seqno) <
 						    (UINT32_MAX / 2U)) {
-							r.r->data[1] -= 1500;
-							r.r->data[2] -= 1500;
+							r.r->axis[0] -= 1500;
+							r.r->axis[1] -= 1500;
 
 							if ((uint32_t)(r.r->seqno - last_seqno) >
 							    1U) {
@@ -114,21 +115,19 @@ rc_main(void)
 									       last_seqno);
 							}
 
-							// printf("recv rc -%idbm %u, rc2=%i,
-							// rc3=%i\n", rx_data.dbm, r.r->seqno,
-							// r.r->rc2, r.r->rc3);
-							log_dbg("%04x %04x %04x %04x %04x %04x "
-								"%04x %04x %02x",
-								r.r->data[0], r.r->data[1],
-								r.r->data[2], r.r->data[3],
-								r.r->data[4], r.r->data[5],
-								r.r->data[6], r.r->data[7],
-								r.r->sq);
-
-							rc_data.speed =
-							    (float)r.r->data[1] / 500.0f;
-							rc_data.steering =
-							    (float)r.r->data[2] / 500.0f;
+							rc_data.speed = (float)r.r->axis[1] / 500.0f;
+							rc_data.steering = (float)r.r->axis[0] / 500.0f;
+							size_t g;
+							for (g = 0; g < 2; g++) {
+								size_t bit;
+								for (bit = 0; bit < 16; bit++) {
+									if (r.r->data[g] & (1U << bit)) {
+										rc_data.btn[(16 * g) + bit] = true;
+									} else {
+										rc_data.btn[(16 * g) + bit] = false;
+									}
+								}
+							}
 							shm_map_write(&rc_shm, &rc_data,
 								      sizeof(rc_data));
 
@@ -138,12 +137,6 @@ rc_main(void)
 						if (rx_data.dbm > best_dbm) {
 							best_dbm = rx_data.dbm;
 						}
-
-						/*int p;
-						for (p = 0; p < rx_data.bytes; p++) {
-							printf("%02X ", rx_data.data[p]);
-						}
-						puts("\n");*/
 					}
 				}
 			}

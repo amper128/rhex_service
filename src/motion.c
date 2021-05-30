@@ -38,18 +38,9 @@ typedef enum {
 	MOTION_STATE_OFF,
 	MOTION_STATE_CALIBRATING,
 	MOTION_STATE_PARKING,
-	MOTION_STATE_BEGIN_WALKING_FRONT,
-	MOTION_STATE_BEGIN_WALKING_BACK,
-	MOTION_STATE_WALKING_FRONT,
-	MOTION_STATE_WALKING_BACK,
-	MOTION_STATE_STOP_WALKING_FRONT,
-	MOTION_STATE_STOP_WALKING_BACK,
-	MOTION_STATE_TURNING_LEFT,
-	MOTION_STATE_TURNING_RIGHT,
-	MOTION_STATE_WALKING_FL,
-	MOTION_STATE_WALKING_FR,
-	MOTION_STATE_WALKING_BL,
-	MOTION_STATE_WALKING_BR
+	MOTION_STATE_BEGIN_WALKING,
+	MOTION_STATE_WALKING,
+	MOTION_STATE_STOP_WALKING
 } motion_state_t;
 
 typedef enum { LEG_LEFT, LEG_RIGHT } leg_side_d;
@@ -354,8 +345,8 @@ parse_msg(const struct can_packet_t *msg)
 
 			// FIXME
 			if (all_drv_ready()) {
-				motion_state = MOTION_STATE_WALKING_FRONT;
-				tgt_motion_state = MOTION_STATE_WALKING_FRONT;
+				motion_state = MOTION_STATE_OFF;
+				tgt_motion_state = MOTION_STATE_OFF;
 				make_step(0.1f, 0.0f);
 				usleep(1000000);
 			}
@@ -403,6 +394,14 @@ do_motion()
 	shm_map_read(&rc_shm, &p);
 	rc_data_t *rc_data = p;
 
+	if (rc_data->btn[0]) {
+		tgt_motion_state = MOTION_STATE_WALKING;
+	}
+
+	if (rc_data->btn[1]) {
+		tgt_motion_state = MOTION_STATE_PARKING;
+	}
+
 	if (tgt_motion_state != motion_state) {
 		if (all_drv_ready()) {
 			switch (tgt_motion_state) {
@@ -416,18 +415,10 @@ do_motion()
 				motion_state = MOTION_STATE_CALIBRATING;
 				break;
 
-			case MOTION_STATE_BEGIN_WALKING_FRONT:
-			case MOTION_STATE_BEGIN_WALKING_BACK:
-			case MOTION_STATE_WALKING_FRONT:
-			case MOTION_STATE_WALKING_BACK:
-			case MOTION_STATE_STOP_WALKING_FRONT:
-			case MOTION_STATE_STOP_WALKING_BACK:
-			case MOTION_STATE_TURNING_LEFT:
-			case MOTION_STATE_TURNING_RIGHT:
-			case MOTION_STATE_WALKING_FL:
-			case MOTION_STATE_WALKING_FR:
-			case MOTION_STATE_WALKING_BL:
-			case MOTION_STATE_WALKING_BR:
+			case MOTION_STATE_BEGIN_WALKING:
+			case MOTION_STATE_WALKING:
+			case MOTION_STATE_STOP_WALKING:
+				motion_state = MOTION_STATE_WALKING;
 
 			case MOTION_STATE_OFF:
 			default:
@@ -450,18 +441,9 @@ do_motion()
 		/* waiting for end of calibrating */
 		break;
 
-	case MOTION_STATE_BEGIN_WALKING_FRONT:
-	case MOTION_STATE_BEGIN_WALKING_BACK:
-	case MOTION_STATE_WALKING_FRONT:
-	case MOTION_STATE_WALKING_BACK:
-	case MOTION_STATE_STOP_WALKING_FRONT:
-	case MOTION_STATE_STOP_WALKING_BACK:
-	case MOTION_STATE_TURNING_LEFT:
-	case MOTION_STATE_TURNING_RIGHT:
-	case MOTION_STATE_WALKING_FL:
-	case MOTION_STATE_WALKING_FR:
-	case MOTION_STATE_WALKING_BL:
-	case MOTION_STATE_WALKING_BR:
+	case MOTION_STATE_BEGIN_WALKING:
+	case MOTION_STATE_WALKING:
+	case MOTION_STATE_STOP_WALKING:
 		if (all_drv_ready()) {
 			make_step(rc_data->speed, rc_data->steering);
 		}

@@ -13,6 +13,7 @@
 typedef struct {
 	float speed;
 	float steering;
+	bool btn[32];
 } rc_data_t;
 
 typedef struct {
