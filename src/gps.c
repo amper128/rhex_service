@@ -301,7 +301,7 @@ gps_main(void)
 				line_len++;
 			}
 		} else {
-			log_warn("no data in select...");
+			/*log_warn("no data in select...");*/
 			/* waiting for new data ... */
 		}
 	}
