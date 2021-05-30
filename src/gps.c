@@ -17,7 +17,6 @@
 #include <svc_context.h>
 
 static gps_status_t tmp_gps_status;
-;
 
 typedef struct {
 	unsigned int speed;

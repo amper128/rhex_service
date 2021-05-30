@@ -99,7 +99,11 @@ sensors_main(void)
 
 	if (ina_fd == -1) {
 		log_err("cannot connect INA226!");
-		return 1;
+		ina_fd = ina226_open(0x40);
+		if (ina_fd == -1) {
+			log_err("cannot connect INA226!");
+			return 1;
+		}
 	}
 
 	ina226_set_shunt(ina_fd, 0.01);
@@ -117,6 +121,11 @@ sensors_main(void)
 	filter64_t f_vbat = {
 	    0,
 	};
+	filter_t f_curr = {
+	    0,
+	};
+
+	double pwr = 0.0;
 
 	while (wait_cycle(timerfd)) {
 		if (!svc_cycle()) {
@@ -137,6 +146,9 @@ sensors_main(void)
 		v = filter64_value(v, &f_vbat);
 
 		c = (double)ina226_get_current(ina_fd);
+		c = filter_value(c, &f_curr);
+
+		pwr = pwr + (c / 3600.0 / 20.0);
 
 		X = i2c_read_reg_16(fd, REG_DATA_X_LOW);
 		Y = i2c_read_reg_16(fd, REG_DATA_Y_LOW);
@@ -161,6 +173,7 @@ sensors_main(void)
 		s.angle_z = angleZ * 180.0 / M_PI;
 		s.vbat = v / 1000.0;
 		s.curr = c / 1000.0;
+		s.pwr = pwr;
 
 		shm_map_write(&sensors_shm, &s, sizeof(s));
 	}

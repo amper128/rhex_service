@@ -115,16 +115,25 @@ rc_main(void)
 									       last_seqno);
 							}
 
-							rc_data.speed = (float)r.r->axis[1] / 500.0f;
-							rc_data.steering = (float)r.r->axis[0] / 500.0f;
+							rc_data.speed =
+							    (float)r.r->axis[1] / 500.0f;
+							rc_data.steering =
+							    (float)r.r->axis[0] / 500.0f;
 							size_t g;
 							for (g = 0; g < 2; g++) {
 								size_t bit;
 								for (bit = 0; bit < 16; bit++) {
-									if (r.r->data[g] & (1U << bit)) {
-										rc_data.btn[(16 * g) + bit] = true;
+									if (r.r->data[g] &
+									    (1U << bit)) {
+										rc_data
+										    .btn[(16 * g) +
+											 bit] =
+										    true;
 									} else {
-										rc_data.btn[(16 * g) + bit] = false;
+										rc_data
+										    .btn[(16 * g) +
+											 bit] =
+										    false;
 									}
 								}
 							}
