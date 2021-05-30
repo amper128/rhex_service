@@ -16,7 +16,7 @@
 #include <svc_context.h>
 #include <telemetry.h>
 #include <timerfd.h>
-#include <wfb_tx.h>
+#include <wfb/wfb_tx.h>
 
 static shm_t gps_shm;
 static shm_t sensors_shm;

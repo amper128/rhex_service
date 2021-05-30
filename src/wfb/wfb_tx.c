@@ -31,7 +31,7 @@
 #include <sys/time.h>
 
 #include <log.h>
-#include <wfb_tx.h>
+#include <wfb/wfb_tx.h>
 
 /* header buffer for atheros */
 static uint8_t headers_atheros[40];

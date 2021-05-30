@@ -11,7 +11,7 @@
 #include <rhex_rc.h>
 #include <sharedmem.h>
 #include <svc_context.h>
-#include <wfb_rx.h>
+#include <wfb/wfb_rx.h>
 
 static shm_t rc_shm;
 static shm_t rc_status_shm;

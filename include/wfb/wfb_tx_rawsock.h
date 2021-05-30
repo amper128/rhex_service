@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <wfb_tx.h>
+#include <wfb/wfb_tx.h>
 
 typedef struct {
 	int valid;

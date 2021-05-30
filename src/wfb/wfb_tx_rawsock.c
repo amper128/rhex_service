@@ -30,10 +30,10 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-#include <fec.h>
 #include <log.h>
 #include <svc_context.h>
-#include <wfb_tx_rawsock.h>
+#include <wfb/fec.h>
+#include <wfb/wfb_tx_rawsock.h>
 
 #define MAX_PACKET_LENGTH 4192
 #define MAX_USER_PACKET_LENGTH 2278

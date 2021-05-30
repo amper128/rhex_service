@@ -23,10 +23,9 @@
  */
 
 #include <log.h>
-#include <wfb_rx.h>
-
 #include <radiotap/radiotap_iter.h>
 #include <radiotap/radiotap_rc.h>
+#include <wfb/wfb_rx.h>
 
 #include <pcap.h>
 #include <string.h>
