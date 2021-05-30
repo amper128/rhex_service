@@ -63,7 +63,7 @@ svc_get_time(void)
 	struct timespec ts;
 	uint64_t result = 0ULL;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == 0) {
 		result = ts.tv_nsec + (ts.tv_sec * TIME_S);
 	}
 
