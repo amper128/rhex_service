@@ -18,7 +18,10 @@ typedef struct {
 	int type[MAX_ADAP];
 	size_t count;
 	size_t pcnt;
+	size_t stream_phdr_len;
 } wfb_tx_t;
+
+int wfb_open_sock(const char ifname[]);
 
 int wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const if_desc_t interfaces[], int port);
 

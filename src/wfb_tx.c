@@ -59,8 +59,8 @@ struct header_s {
 
 static struct header_s header;
 
-static int
-open_sock(const char ifname[])
+int
+wfb_open_sock(const char ifname[])
 {
 	struct sockaddr_ll ll_addr;
 	struct ifreq ifr;
@@ -77,7 +77,7 @@ open_sock(const char ifname[])
 	ll_addr.sll_protocol = 0;
 	ll_addr.sll_halen = ETH_ALEN;
 
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1U);
 
 	if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0) {
 		log_err("ioctl(SIOCGIFINDEX) failed");
@@ -295,7 +295,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const if_desc_t interfaces[], int p
 			wfb_tx->type[num_interfaces] = 0;
 		}
 
-		wfb_tx->sock[wfb_tx->count] = open_sock(interfaces[i].ifname);
+		wfb_tx->sock[wfb_tx->count] = wfb_open_sock(interfaces[i].ifname);
 		wfb_tx->count++;
 
 		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi
