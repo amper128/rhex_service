@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <netlink.h>
 #include <platform.h>
 
 #define MAX_ADAP (5U)
@@ -19,6 +20,6 @@ typedef struct {
 	size_t pcnt;
 } wfb_tx_t;
 
-int wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port);
+int wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const if_desc_t interfaces[], int port);
 
 void wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len);

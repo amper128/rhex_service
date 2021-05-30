@@ -108,8 +108,8 @@ open_sock(const char ifname[])
 	return sock;
 }
 
-static uint8_t u8aRadiotapHeader[] = {0x00, 0x00,	     /**< @brief radiotap version */
-				      0x0c, 0x00,	     /**< @brief radiotap header length */
+static uint8_t u8aRadiotapHeader[] = {0x00, 0x00,	      /**< @brief radiotap version */
+				      0x0c, 0x00,	      /**< @brief radiotap header length */
 				      0x04, 0x80, 0x00, 0x00, /**< @brief radiotap present flags */
 				      0x00, /**< @brief datarate (will be overwritten later) */
 				      0x00, 0x00, 0x00};
@@ -132,7 +132,7 @@ static uint8_t u8aIeeeHeader_data[] = {
     0x55, 0x66, /**< @brief mac */
     0x13, 0x22, 0x33, 0x44,
     0x55, 0x66, /**< @brief mac */
-    0x00, 0x00  /**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi
+    0x00, 0x00	/**< @brief IEEE802.11 seqnum, (will be overwritten later by Atheros firmware/wifi
 		   chip) */
 };
 
@@ -244,7 +244,7 @@ current_timestamp()
 }
 
 int
-wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
+wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const if_desc_t interfaces[], int port)
 {
 	int result = 0;
 	int port_encoded = 0;
@@ -258,7 +258,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 		char line[100];
 		char path[100];
 
-		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i]);
+		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i].ifname);
 		procfile = fopen(path, "r");
 
 		if (!procfile) {
@@ -295,7 +295,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const char *interfaces[], int port)
 			wfb_tx->type[num_interfaces] = 0;
 		}
 
-		wfb_tx->sock[wfb_tx->count] = open_sock(interfaces[i]);
+		wfb_tx->sock[wfb_tx->count] = open_sock(interfaces[i].ifname);
 		wfb_tx->count++;
 
 		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi

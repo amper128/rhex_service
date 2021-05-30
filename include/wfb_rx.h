@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include <platform.h>
+#include <netlink.h>
 #include <pcap.h>
+#include <platform.h>
 
 #define INTERFACES_MAX (8U)
 
@@ -25,14 +26,14 @@ typedef struct {
 	size_t count;
 } wfb_rx_t;
 
-int wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port);
+int wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const if_desc_t interfaces[], int port);
 
 #define MAX_MTU (1500)
 
 typedef struct {
-	int type;	// r/c or telemetry
-	int dbm;	// signal level
-	int bytes;	// data length
+	int type;  // r/c or telemetry
+	int dbm;   // signal level
+	int bytes; // data length
 	uint8_t data[MAX_MTU];
 } wfb_rx_packet_t;
 

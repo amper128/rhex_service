@@ -15,6 +15,7 @@
 #include <can_proto.h>
 #include <canbus.h>
 #include <log.h>
+#include <netlink.h>
 #include <platform.h>
 
 static int can_sock = -1;
@@ -25,24 +26,29 @@ can_init(void)
 	int sock = -1;
 
 	struct sockaddr_can addr;
-	struct ifreq ifr;
 
 	do {
-		if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-			log_err("socket");
+		if_desc_t can_list[4U];
+		int can_count;
+
+		can_count = nl_get_can_list(can_list);
+		if (can_count < 0) {
+			log_err("cannot get can list");
 			break;
 		}
 
-		strcpy(ifr.ifr_name, "can0");
-		if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0) {
-			log_err("SIOCGIFINDEX");
-			close(sock);
-			sock = -1;
+		if (can_count == 0) {
+			log_err("cannot find can interfaces");
+			break;
+		}
+
+		if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+			log_err("cannot create can socket");
 			break;
 		}
 
 		addr.can_family = AF_CAN;
-		addr.can_ifindex = ifr.ifr_ifindex;
+		addr.can_ifindex = can_list[0U].ifi_index;
 
 		if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 			log_err("bind");

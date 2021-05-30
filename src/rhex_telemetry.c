@@ -104,9 +104,17 @@ telemetry_main(void)
 			break;
 		}
 
-		// FIXME: get a list of interfaces
-		const char *if_list[] = {"00e08632035b"};
-		result = wfb_tx_init(&telemetry_tx, 1U, if_list, 1);
+		if_desc_t if_list[4U];
+		int if_count;
+
+		if_count = nl_get_wifi_list(if_list);
+		if (if_count < 0) {
+			result = -1;
+			log_err("cannot get wlan list");
+			break;
+		}
+
+		result = wfb_tx_init(&telemetry_tx, (size_t)if_count, if_list, 1);
 		if (result != 0) {
 			break;
 		}

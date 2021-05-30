@@ -252,7 +252,7 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 }
 
 int
-wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
+wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const if_desc_t interfaces[], int port)
 {
 	int result = 0;
 	char path[45], line[100];
@@ -262,7 +262,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 
 	size_t i;
 	for (i = 0U; i < num_if; i++) {
-		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i]);
+		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i].ifname);
 		procfile = fopen(path, "r");
 		if (!procfile) {
 			log_err("opening %s failed!", path);
@@ -292,7 +292,8 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const char *interfaces[], int port)
 			wfb_rx->type[wfb_rx->count] = (int8_t)(1);
 		}
 
-		open_and_configure_interface(interfaces[i], &wfb_rx->iface[wfb_rx->count], port);
+		open_and_configure_interface(interfaces[i].ifname, &wfb_rx->iface[wfb_rx->count],
+					     port);
 		wfb_rx->count++;
 
 		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi
