@@ -2,7 +2,7 @@ LDFLAGS=-lm -lrt -lpcap
 LDFLAGS=-lwiringPi -lm -lrt -lpcap
 CPPFLAGS=-Wall -O2 -march=native -mtune=native -D _GNU_SOURCE
 CPPFLAGS=-Wall -O2 -march=native -mtune=native -mfpu=vfp -mfloat-abi=hard -D _GNU_SOURCE
-CFLAGS := $(CFLAGS) $(CPPFLAGS) -Iinclude/ -Wall -Wextra
+CFLAGS := $(CFLAGS) $(CPPFLAGS) -Iinclude/ -Wall -Wextra -Werror
 
 all: rhex_service
 
