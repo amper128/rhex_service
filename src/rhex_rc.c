@@ -61,10 +61,7 @@ rc_main(void)
 
 	uint32_t last_seqno = 0U;
 
-	for (;;) {
-		if (!svc_cycle()) {
-			break;
-		}
+	while (svc_cycle()) {
 		struct timeval to;
 		to.tv_sec = 0;
 		to.tv_usec = 1e5; // 100ms timeout

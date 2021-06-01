@@ -12,7 +12,6 @@
 #include <rhex_rc.h>
 #include <sharedmem.h>
 #include <svc_context.h>
-#include <timerfd.h>
 
 #include <math.h>
 #include <string.h>
@@ -486,14 +485,7 @@ motion_init(void)
 int
 motion_main(void)
 {
-	int timerfd;
-
 	if (can_init() < 0) {
-		return 1;
-	}
-
-	timerfd = timerfd_init(10ULL * TIME_MS, 10ULL * TIME_MS);
-	if (timerfd < 0) {
 		return 1;
 	}
 
@@ -501,10 +493,7 @@ motion_main(void)
 
 	start_msg();
 
-	while (wait_cycle(timerfd)) {
-		if (!svc_cycle()) {
-			break;
-		}
+	while (svc_cycle()) {
 		do_motion();
 	}
 

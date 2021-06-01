@@ -15,7 +15,6 @@
 #include <sharedmem.h>
 #include <svc_context.h>
 #include <telemetry.h>
-#include <timerfd.h>
 #include <wfb/wfb_tx.h>
 
 static shm_t gps_shm;
@@ -112,23 +111,13 @@ telemetry_main(void)
 			break;
 		}
 
-		int timerfd;
-		timerfd = timerfd_init(100ULL * TIME_MS, 100ULL * TIME_MS);
-		if (timerfd < 0) {
-			result = -1;
-			break;
-		}
-
 		vector_telemetry_t vot;
 		memset((uint8_t *)&vot, 0, sizeof(vot));
 		vot.StartCode = VOT_SC;
 
 		uint32_t seqno = 0U;
 
-		while (wait_cycle(timerfd)) {
-			if (!svc_cycle()) {
-				break;
-			}
+		while (svc_cycle()) {
 			read_gps_status(&vot);
 			read_sensors_status(&vot);
 

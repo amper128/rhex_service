@@ -26,24 +26,31 @@ typedef struct {
 	svc_context_t *ctx;
 } svc_t;
 
+typedef struct {
+	const char *name;
+	int (*init)(void);
+	int (*main)(void);
+	uint64_t period;
+} svc_desc_t;
+
 static svc_t svc_list[SERVICES_MAX];
 static size_t svc_count = 0U;
 static svc_context_t *svc_main;
 
 static int
-start_svc(const char name[], int (*entry_point)(void))
+start_svc(const svc_desc_t *svc_desc)
 {
 	if (svc_count == SERVICES_MAX) {
 		log_err("Service list overflow!");
 		return -1;
 	}
 
-	log_inf("Starting svc \"%s\"...", name);
+	log_inf("Starting svc \"%s\"...", svc_desc->name);
 
 	svc_t *svc = &svc_list[svc_count];
 
-	svc->ctx = svc_create_context(name);
-	svc->ctx->log_buffer = logger_create(name);
+	svc->ctx = svc_create_context(svc_desc->name);
+	svc->ctx->log_buffer = logger_create(svc_desc->name);
 
 	pid_t pid;
 
@@ -56,13 +63,22 @@ start_svc(const char name[], int (*entry_point)(void))
 	if (pid == 0) {
 		/* we are new service */
 		svc_init_context(svc->ctx);
-		prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
+
+		prctl(PR_SET_NAME, (unsigned long)svc_desc->name, 0, 0, 0);
 		logger_init();
-		exit(entry_point());
+
+		/* setup timer */
+		svc->ctx->timerfd = timerfd_init(svc_desc->period, svc_desc->period);
+		if (svc->ctx->timerfd < 0) {
+			log_err("cannot setup timer");
+			exit(1);
+		}
+
+		exit(svc_desc->main());
 	}
 
 	svc->pid = pid;
-	svc->name = name;
+	svc->name = svc_desc->name;
 
 	svc_count++;
 
@@ -72,28 +88,24 @@ start_svc(const char name[], int (*entry_point)(void))
 static int
 start_microservices(void)
 {
-	static struct {
-		struct {
-			const char *name;
-			int (*init)(void);
-			int (*main)(void);
-		} svc[SERVICES_MAX];
+	static const struct {
+		svc_desc_t svc[SERVICES_MAX];
 		size_t count;
-	} svc_list = {{{"gps", gps_init, gps_main},
-		       {"sensors", sensors_init, sensors_main},
-		       {"motion", motion_init, motion_main},
-		       {"telemetry", telemetry_init, telemetry_main},
-		       {"rc", rc_init, rc_main}},
-		      5U};
+	} svc_start_list = {{{"gps", gps_init, gps_main, 10ULL * TIME_MS},
+			     {"sensors", sensors_init, sensors_main, 50ULL * TIME_MS},
+			     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
+			     {"telemetry", telemetry_init, telemetry_main, 100ULL * TIME_MS},
+			     {"rc", rc_init, rc_main, 30ULL * TIME_MS}},
+			    5U};
 
 	size_t i;
 
-	for (i = 0U; i < svc_list.count; i++) {
-		svc_list.svc[i].init();
+	for (i = 0U; i < svc_start_list.count; i++) {
+		svc_start_list.svc[i].init();
 	}
 
-	for (i = 0U; i < svc_list.count; i++) {
-		start_svc(svc_list.svc[i].name, svc_list.svc[i].main);
+	for (i = 0U; i < svc_start_list.count; i++) {
+		start_svc(&svc_start_list.svc[i]);
 	}
 
 	return 0;

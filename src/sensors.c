@@ -14,7 +14,6 @@
 #include <sensors.h>
 #include <sharedmem.h>
 #include <svc_context.h>
-#include <timerfd.h>
 
 static shm_t sensors_shm;
 
@@ -87,12 +86,6 @@ sensors_main(void)
 	}
 	i2c_write_reg_8(fd, REG_POWER_CTL, 0b00001000);
 
-	int timerfd;
-	timerfd = timerfd_init(50ULL * TIME_MS, 50ULL * TIME_MS);
-	if (timerfd < 0) {
-		return 1;
-	}
-
 	int ina_fd;
 
 	ina_fd = ina226_open(0x40);
@@ -127,11 +120,7 @@ sensors_main(void)
 
 	double pwr = 0.0;
 
-	while (wait_cycle(timerfd)) {
-		if (!svc_cycle()) {
-			break;
-		}
-
+	while (svc_cycle()) {
 		sensors_status_t s;
 
 		double ax, ay, az;
