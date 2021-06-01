@@ -107,17 +107,7 @@ telemetry_main(void)
 			break;
 		}
 
-		if_desc_t if_list[4U];
-		int if_count;
-
-		if_count = nl_get_wifi_list(if_list);
-		if (if_count < 0) {
-			result = -1;
-			log_err("cannot get wlan list");
-			break;
-		}
-
-		result = wfb_tx_init(&telemetry_tx, (size_t)if_count, if_list, 1);
+		result = wfb_tx_init(&telemetry_tx, 1, false);
 		if (result != 0) {
 			break;
 		}

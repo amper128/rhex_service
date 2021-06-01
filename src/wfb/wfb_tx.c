@@ -244,145 +244,161 @@ current_timestamp()
 }
 
 int
-wfb_tx_init(wfb_tx_t *wfb_tx, size_t num_if, const if_desc_t interfaces[], int port)
+wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts)
 {
 	int result = 0;
-	int port_encoded = 0;
-	int param_cts = 0;
-	int param_data_rate = 12;
-	size_t i;
-	size_t num_interfaces = 0;
 
-	for (i = 0; (i < num_if) && (num_interfaces < MAX_ADAP); i++) {
-		FILE *procfile;
-		char line[100];
-		char path[100];
+	do {
+		if_desc_t if_list[NL_MAX_IFACES];
+		int res;
 
-		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i].ifname);
-		procfile = fopen(path, "r");
-
-		if (!procfile) {
-			log_err("opening %s failed!", path);
-			return 0;
+		res = nl_get_wifi_list(if_list);
+		if (res < 0) {
+			result = res;
+			log_err("cannot get wlan list");
+			break;
 		}
 
-		int l;
+		size_t num_interfaces = 0U;
+		size_t num_if = (size_t)res;
 
-		/* skip first line, need second line */
-		for (l = 0; l < 2; l++) {
-			if (fgets(line, 100, procfile) == NULL) {
-				result = -1;
-				break;
+		int port_encoded = 0;
+		int param_data_rate = 12;
+		size_t i;
+
+		for (i = 0; (i < num_if) && (num_interfaces < NL_MAX_IFACES); i++) {
+			FILE *procfile;
+			char line[100];
+			char path[128];
+
+			snprintf(path, 128, "/sys/class/net/%s/device/uevent", if_list[i].ifname);
+			procfile = fopen(path, "r");
+
+			if (!procfile) {
+				log_err("opening %s failed!", path);
+				return 0;
 			}
-		}
-		fclose(procfile);
 
-		if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0 ||
-		    (strncmp(line, "DRIVER=8812au", 13) == 0 ||
-		     strncmp(line, "DRIVER=8814au", 13) == 0 ||
-		     strncmp(line, "DRIVER=rtl8812au", 16) == 0 ||
-		     strncmp(line, "DRIVER=rtl8814au", 16) == 0 ||
-		     strncmp(line, "DRIVER=rtl88xxau", 16) == 0)) {
-			if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0) {
-				log_inf("tx_telemetry: Atheros card detected");
-				wfb_tx->type[num_interfaces] = 1;
-			} else {
-				log_inf("tx_telemetry: Realtek card detected");
-				wfb_tx->type[num_interfaces] = 2;
+			size_t l;
+
+			/* skip first line, need second line */
+			for (l = 0U; l < 2U; l++) {
+				if (fgets(line, 100, procfile) == NULL) {
+					result = -1;
+					break;
+				}
 			}
-		} else { // ralink or mediatek
-			log_inf("tx_telemetry: Ralink or other type card detected");
-			wfb_tx->type[num_interfaces] = 0;
+			fclose(procfile);
+
+			if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0 ||
+			    (strncmp(line, "DRIVER=8812au", 13) == 0 ||
+			     strncmp(line, "DRIVER=8814au", 13) == 0 ||
+			     strncmp(line, "DRIVER=rtl8812au", 16) == 0 ||
+			     strncmp(line, "DRIVER=rtl8814au", 16) == 0 ||
+			     strncmp(line, "DRIVER=rtl88xxau", 16) == 0)) {
+				if (strncmp(line, "DRIVER=ath9k_htc", 16) == 0) {
+					log_inf("tx_telemetry: Atheros card detected");
+					wfb_tx->type[num_interfaces] = 1;
+				} else {
+					log_inf("tx_telemetry: Realtek card detected");
+					wfb_tx->type[num_interfaces] = 2;
+				}
+			} else { // ralink or mediatek
+				log_inf("tx_telemetry: Ralink or other type card detected");
+				wfb_tx->type[num_interfaces] = 0;
+			}
+
+			wfb_tx->sock[wfb_tx->count] = wfb_open_sock(if_list[i].ifname);
+			wfb_tx->count++;
+
+			usleep(10000); // wait a bit between configuring interfaces to reduce
+				       // Atheros and Pi USB flakiness
 		}
 
-		wfb_tx->sock[wfb_tx->count] = wfb_open_sock(interfaces[i].ifname);
-		wfb_tx->count++;
+		if (result != 0) {
+			return result;
+		}
 
-		usleep(10000); // wait a bit between configuring interfaces to reduce Atheros and Pi
-			       // USB flakiness
-	}
+		switch (param_data_rate) {
+		case 1:
+			u8aRadiotapHeader[8] = 0x02;
+			break;
+		case 2:
+			u8aRadiotapHeader[8] = 0x04;
+			break;
+		case 5: // 5.5
+			u8aRadiotapHeader[8] = 0x0b;
+			break;
+		case 6:
+			u8aRadiotapHeader[8] = 0x0c;
+			break;
+		case 11:
+			u8aRadiotapHeader[8] = 0x16;
+			break;
+		case 12:
+			u8aRadiotapHeader[8] = 0x18;
+			break;
+		case 18:
+			u8aRadiotapHeader[8] = 0x24;
+			break;
+		case 24:
+			u8aRadiotapHeader[8] = 0x30;
+			break;
+		case 36:
+			u8aRadiotapHeader[8] = 0x48;
+			break;
+		case 48:
+			u8aRadiotapHeader[8] = 0x60;
+			break;
+		default:
+			log_err("tx_telemetry: ERROR: Wrong or no data rate specified (see -d "
+				"parameter)");
+			exit(1);
+			break;
+		}
 
-	if (result != 0) {
-		return result;
-	}
+		port_encoded = (port * 2) + 1;
+		u8aIeeeHeader_rts[4] = port_encoded;
+		u8aIeeeHeader_data[4] = port_encoded;
+		u8aIeeeHeader_data_short[4] = port_encoded;
 
-	switch (param_data_rate) {
-	case 1:
-		u8aRadiotapHeader[8] = 0x02;
-		break;
-	case 2:
-		u8aRadiotapHeader[8] = 0x04;
-		break;
-	case 5: // 5.5
-		u8aRadiotapHeader[8] = 0x0b;
-		break;
-	case 6:
-		u8aRadiotapHeader[8] = 0x0c;
-		break;
-	case 11:
-		u8aRadiotapHeader[8] = 0x16;
-		break;
-	case 12:
-		u8aRadiotapHeader[8] = 0x18;
-		break;
-	case 18:
-		u8aRadiotapHeader[8] = 0x24;
-		break;
-	case 24:
-		u8aRadiotapHeader[8] = 0x30;
-		break;
-	case 36:
-		u8aRadiotapHeader[8] = 0x48;
-		break;
-	case 48:
-		u8aRadiotapHeader[8] = 0x60;
-		break;
-	default:
-		log_err("tx_telemetry: ERROR: Wrong or no data rate specified (see -d parameter)");
-		exit(1);
-		break;
-	}
+		// for Atheros use data frames if CTS protection enabled or rts if disabled
+		// CTS protection causes R/C transmission to stop for some reason, always use rts
+		// frames (i.e. no cts protection) use_cts = 0;
+		if (use_cts) { // use data frames
+			memcpy(headers_atheros, u8aRadiotapHeader,
+			       sizeof(u8aRadiotapHeader)); // radiotap header
+			memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data,
+			       sizeof(u8aIeeeHeader_data)); // ieee header
+			headers_atheros_len =
+			    sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data);
+		} else { // use rts frames
+			memcpy(headers_atheros, u8aRadiotapHeader,
+			       sizeof(u8aRadiotapHeader)); // radiotap header
+			memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_rts,
+			       sizeof(u8aIeeeHeader_rts)); // ieee header
+			headers_atheros_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_rts);
+		}
 
-	port_encoded = (port * 2) + 1;
-	u8aIeeeHeader_rts[4] = port_encoded;
-	u8aIeeeHeader_data[4] = port_encoded;
-	u8aIeeeHeader_data_short[4] = port_encoded;
-
-	// for Atheros use data frames if CTS protection enabled or rts if disabled
-	// CTS protection causes R/C transmission to stop for some reason, always use rts frames
-	// (i.e. no cts protection)
-	// param_cts = 0;
-	if (param_cts == 1) { // use data frames
-		memcpy(headers_atheros, u8aRadiotapHeader,
+		// for Ralink always use data short
+		memcpy(headers_ralink, u8aRadiotapHeader,
 		       sizeof(u8aRadiotapHeader)); // radiotap header
-		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data,
-		       sizeof(u8aIeeeHeader_data)); // ieee header
-		headers_atheros_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data);
-	} else { // use rts frames
-		memcpy(headers_atheros, u8aRadiotapHeader,
-		       sizeof(u8aRadiotapHeader)); // radiotap header
-		memcpy(headers_atheros + sizeof(u8aRadiotapHeader), u8aIeeeHeader_rts,
+		memcpy(headers_ralink + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data_short,
+		       sizeof(u8aIeeeHeader_data_short)); // ieee header
+		headers_ralink_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data_short);
+
+		// for Realtek use rts frames
+		memcpy(headers_Realtek, u8aRadiotapHeader80211n,
+		       sizeof(u8aRadiotapHeader80211n)); // radiotap header
+		memcpy(headers_Realtek + sizeof(u8aRadiotapHeader80211n), u8aIeeeHeader_rts,
 		       sizeof(u8aIeeeHeader_rts)); // ieee header
-		headers_atheros_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_rts);
-	}
+		headers_Realtek_len = sizeof(u8aRadiotapHeader80211n) + sizeof(u8aIeeeHeader_rts);
 
-	// for Ralink always use data short
-	memcpy(headers_ralink, u8aRadiotapHeader, sizeof(u8aRadiotapHeader)); // radiotap header
-	memcpy(headers_ralink + sizeof(u8aRadiotapHeader), u8aIeeeHeader_data_short,
-	       sizeof(u8aIeeeHeader_data_short)); // ieee header
-	headers_ralink_len = sizeof(u8aRadiotapHeader) + sizeof(u8aIeeeHeader_data_short);
-
-	// for Realtek use rts frames
-	memcpy(headers_Realtek, u8aRadiotapHeader80211n,
-	       sizeof(u8aRadiotapHeader80211n)); // radiotap header
-	memcpy(headers_Realtek + sizeof(u8aRadiotapHeader80211n), u8aIeeeHeader_rts,
-	       sizeof(u8aIeeeHeader_rts)); // ieee header
-	headers_Realtek_len = sizeof(u8aRadiotapHeader80211n) + sizeof(u8aIeeeHeader_rts);
-
-	// radiotap and ieee headers
-	memcpy(packet_buffer_ath, headers_atheros, headers_atheros_len);
-	memcpy(packet_buffer_ral, headers_ralink, headers_ralink_len);
-	memcpy(packet_buffer_rea, headers_Realtek, headers_Realtek_len);
+		// radiotap and ieee headers
+		memcpy(packet_buffer_ath, headers_atheros, headers_atheros_len);
+		memcpy(packet_buffer_ral, headers_ralink, headers_ralink_len);
+		memcpy(packet_buffer_rea, headers_Realtek, headers_Realtek_len);
+	} while (false);
 
 	return result;
 }

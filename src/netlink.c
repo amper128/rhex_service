@@ -229,11 +229,15 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 
 				while (RTA_OK(attr_ptr, attr_len)) {
 					if (attr_ptr->rta_type == IFLA_IFNAME) {
-						strncpy(if_list[if_count].ifname,
-							(char *)RTA_DATA(attr_ptr), IFNAMSIZ);
-						if_list[if_count].ifi_index = ifi_ptr->ifi_index;
-						if_count++;
-						result = if_count;
+						if (if_count < NL_MAX_IFACES) {
+							strncpy(if_list[if_count].ifname,
+								(char *)RTA_DATA(attr_ptr),
+								IFNAMSIZ - 1U);
+							if_list[if_count].ifi_index =
+							    ifi_ptr->ifi_index;
+							if_count++;
+							result = if_count;
+						}
 					}
 
 					attr_ptr = RTA_NEXT(attr_ptr, attr_len);

@@ -10,6 +10,8 @@
 
 #define IFNAM_SIZE (16U)
 
+#define NL_MAX_IFACES (4U)
+
 typedef struct {
 	char ifname[IFNAM_SIZE];
 	int ifi_index;

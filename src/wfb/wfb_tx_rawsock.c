@@ -554,13 +554,23 @@ pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packe
 }
 
 int
-wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, size_t num_if, const if_desc_t interfaces[],
-		uint8_t tx_buf[], int port, int packet_type, bool useMCS, bool useSTBC,
-		bool useLDPC)
+wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int packet_type,
+		bool useMCS, bool useSTBC, bool useLDPC)
 {
+	if_desc_t if_list[NL_MAX_IFACES];
+	int res;
+
+	res = nl_get_wifi_list(if_list);
+	if (res < 0) {
+		log_err("cannot get wlan list");
+		return res;
+	}
+
+	size_t num_interfaces = 0U;
+	size_t num_if = (size_t)res;
+
 	int param_data_rate = 12;
 	size_t i;
-	size_t num_interfaces = 0U;
 
 	if (useMCS) {
 		log_inf("Using 802.11N mode");
@@ -613,9 +623,9 @@ wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, size_t num_if, const if_desc_t int
 	/*telemetry_data_t td;
 	telemetry_init(&td);*/
 
-	for (i = 0; (i < num_if) && (num_interfaces < MAX_ADAP); i++) {
+	for (i = 0; (i < num_if) && (num_interfaces < NL_MAX_IFACES); i++) {
 		wfb_stream->wfb_tx.sock[wfb_stream->wfb_tx.count] =
-		    wfb_open_rawsock(interfaces[i].ifname);
+		    wfb_open_rawsock(if_list[i].ifname);
 		wfb_stream->wfb_tx.count++;
 
 		/*
