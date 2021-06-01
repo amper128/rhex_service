@@ -11,6 +11,7 @@
 #include <logger.h>
 #include <motion.h>
 #include <rhex_rc.h>
+#include <rssi_tx.h>
 #include <sensors.h>
 #include <svc_context.h>
 #include <telemetry.h>
@@ -95,8 +96,9 @@ start_microservices(void)
 			     {"sensors", sensors_init, sensors_main, 50ULL * TIME_MS},
 			     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
 			     {"telemetry", telemetry_init, telemetry_main, 100ULL * TIME_MS},
-			     {"rc", rc_init, rc_main, 30ULL * TIME_MS}},
-			    5U};
+			     {"rc", rc_init, rc_main, 30ULL * TIME_MS},
+			     {"rssi", rssi_tx_init, rssi_tx_main, (1ULL * TIME_S) / 3ULL}},
+			    6U};
 
 	size_t i;
 
