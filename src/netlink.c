@@ -188,7 +188,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 			break;
 		}
 
-		int if_count = 0;
+		size_t if_count = 0U;
 
 		while (result >= 0) {
 			int msg_len;
