@@ -151,65 +151,82 @@ static uint8_t dummydata[] = {0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0x
 
 int flagHelp = 0;
 
-void
-wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
+static void
+wfb_write(wfb_tx_t *wfb_tx, uint32_t seqno, const uint8_t data[], uint16_t len, bool add_header)
 {
-	header.seqnumber = seqno;
-	header.length = len;
-	//	fprintf(stderr,"seqno: %d",seqno);
 	int padlen = 0;
 	size_t i;
+	size_t offset = 0U;
+
+	if (add_header) {
+		header.seqnumber = seqno;
+		header.length = len;
+	}
 
 	for (i = 0; i < wfb_tx->count; i++) {
 		switch (wfb_tx->type[i]) {
-		case 0: // type: Ralink
-			// telemetry header (seqno and len)
-			memcpy(packet_buffer_ral + headers_ralink_len, &header, 6);
-			memcpy(packet_buffer_ral + headers_ralink_len + 6, data, len);
+		case 0:
+			/* type: Ralink */
+			if (add_header) {
+				/* header (seqno and len) */
+				memcpy(packet_buffer_ral + headers_ralink_len, &header, 6U);
+				offset = 6U;
+			}
+			memcpy(packet_buffer_ral + headers_ralink_len + offset, data, len);
 
-			if (len < 18U) { // pad to minimum length
+			if (len < 18U) {
+				/* pad to minimum length */
 				padlen = 18U - len;
-				memcpy(packet_buffer_ral + headers_ralink_len + 6 + len, dummydata,
-				       padlen);
+				memcpy(packet_buffer_ral + headers_ralink_len + offset + len,
+				       dummydata, padlen);
 			}
 
 			if (write(wfb_tx->sock[i], &packet_buffer_ral,
-				  headers_ralink_len + 6 + len + padlen) < 0) {
+				  headers_ralink_len + offset + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
 
 			break;
 
-		case 1: // type: atheros
-			memcpy(packet_buffer_ath + headers_atheros_len, &header, 6);
-			// telemetry data
-			memcpy(packet_buffer_ath + headers_atheros_len + 6, data, len);
+		case 1:
+			/* type: atheros */
+			if (add_header) {
+				memcpy(packet_buffer_ath + headers_atheros_len, &header, 6U);
+				offset = 6U;
+			}
+			/* data */
+			memcpy(packet_buffer_ath + headers_atheros_len + offset, data, len);
 			if (len < 5U) {
 				padlen = 5U - len;
-				memcpy(packet_buffer_ath + headers_atheros_len + 6 + len, dummydata,
-				       padlen);
+				memcpy(packet_buffer_ath + headers_atheros_len + offset + len,
+				       dummydata, padlen);
 			}
 
 			if (write(wfb_tx->sock[i], &packet_buffer_ath,
-				  headers_atheros_len + 6 + len + padlen) < 0) {
+				  headers_atheros_len + offset + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
 
 			break;
 
-		case 2: // type: Realtek
-			memcpy(packet_buffer_rea + headers_Realtek_len, &header, 6);
-			memcpy(packet_buffer_rea + headers_Realtek_len + 6, data, len);
-			if (len < 5U) { // if telemetry payload is too short, pad to minimum length
+		case 2:
+			/* type: Realtek */
+			if (add_header) {
+				memcpy(packet_buffer_rea + headers_Realtek_len, &header, 6U);
+				offset = 6U;
+			}
+			memcpy(packet_buffer_rea + headers_Realtek_len + offset, data, len);
+			if (len < 5U) {
+				/* if payload is too short, pad to minimum length */
 				padlen = 5U - len;
-				memcpy(packet_buffer_rea + headers_Realtek_len + 6 + len, dummydata,
-				       padlen);
+				memcpy(packet_buffer_rea + headers_Realtek_len + offset + len,
+				       dummydata, padlen);
 			}
 
 			if (write(wfb_tx->sock[i], &packet_buffer_rea,
-				  headers_Realtek_len + 6 + len + padlen) < 0) {
+				  headers_Realtek_len + offset + len + padlen) < 0) {
 				log_err("Cannot write sock");
 				exit(1);
 			}
@@ -229,6 +246,18 @@ wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len)
 	if (wfb_tx->pcnt % 128 == 0) {
 		log_inf("%d packets sent", wfb_tx->pcnt);
 	}
+}
+
+void
+wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, const uint8_t data[], uint16_t len)
+{
+	wfb_write(wfb_tx, seqno, data, len, true);
+}
+
+void
+wfb_tx_send_raw(wfb_tx_t *wfb_tx, const uint8_t data[], uint16_t len)
+{
+	wfb_write(wfb_tx, 0U, data, len, false);
 }
 
 uint64_t

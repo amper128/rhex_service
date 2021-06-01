@@ -23,4 +23,6 @@ int wfb_open_sock(const char ifname[]);
 
 int wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts);
 
-void wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, uint8_t data[], uint16_t len);
+void wfb_tx_send(wfb_tx_t *wfb_tx, uint32_t seqno, const uint8_t data[], uint16_t len);
+
+void wfb_tx_send_raw(wfb_tx_t *wfb_tx, const uint8_t data[], uint16_t len);
