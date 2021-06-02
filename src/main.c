@@ -14,8 +14,10 @@
 #include <rhex_telemetry.h>
 #include <rssi_tx.h>
 #include <sensors.h>
+#include <sharedmem.h>
 #include <svc_context.h>
 #include <timerfd.h>
+#include <wfb/wfb_status.h>
 
 #include <sys/prctl.h>
 
@@ -142,6 +144,11 @@ main(int argc, char **argv)
 	if (timerfd < 0) {
 		return 1;
 	}
+
+	/* FIXME */
+	shm_map_init("shm_rx_status", sizeof(wifibroadcast_rx_status_t));
+	shm_map_init("shm_tx_status", sizeof(wifibroadcast_tx_status_t));
+	shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc));
 
 	if (start_microservices()) {
 		return 1;
