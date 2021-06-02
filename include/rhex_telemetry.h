@@ -1,8 +1,8 @@
 /**
- * @file telemetry.h
+ * @file rhex_telemetry.h
  * @author Алексей Хохлов <root@amper.me>
  * @copyright WTFPL License
- * @date 2020
+ * @date 2020-2021
  * @brief Работа с телеметрией
  */
 
@@ -54,6 +54,6 @@ typedef struct __attribute__((packed)) {
 	uint16_t CRC;
 } vector_telemetry_t; // 97 bytes
 
-int telemetry_init(void);
+int rhex_telemetry_init(void);
 
-int telemetry_main(void);
+int rhex_telemetry_main(void);

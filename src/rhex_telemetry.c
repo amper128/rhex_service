@@ -11,10 +11,10 @@
 #include <crc.h>
 #include <gps.h>
 #include <log.h>
+#include <rhex_telemetry.h>
 #include <sensors.h>
 #include <sharedmem.h>
 #include <svc_context.h>
-#include <telemetry.h>
 #include <wfb/wfb_tx.h>
 
 static shm_t gps_shm;
@@ -83,7 +83,7 @@ read_sensors_status(vector_telemetry_t *vot)
 }
 
 int
-telemetry_init(void)
+rhex_telemetry_init(void)
 {
 	shm_map_init("shm_gps", sizeof(gps_status_t));
 	shm_map_init("shm_sensors", sizeof(sensors_status_t));
@@ -92,7 +92,7 @@ telemetry_init(void)
 }
 
 int
-telemetry_main(void)
+rhex_telemetry_main(void)
 {
 	int result = 0;
 

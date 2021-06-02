@@ -11,10 +11,10 @@
 #include <logger.h>
 #include <motion.h>
 #include <rhex_rc.h>
+#include <rhex_telemetry.h>
 #include <rssi_tx.h>
 #include <sensors.h>
 #include <svc_context.h>
-#include <telemetry.h>
 #include <timerfd.h>
 
 #include <sys/prctl.h>
@@ -92,13 +92,14 @@ start_microservices(void)
 	static const struct {
 		svc_desc_t svc[SERVICES_MAX];
 		size_t count;
-	} svc_start_list = {{{"gps", gps_init, gps_main, 10ULL * TIME_MS},
-			     {"sensors", sensors_init, sensors_main, 50ULL * TIME_MS},
-			     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
-			     {"telemetry", telemetry_init, telemetry_main, 100ULL * TIME_MS},
-			     {"rc", rc_init, rc_main, 30ULL * TIME_MS},
-			     {"rssi", rssi_tx_init, rssi_tx_main, (1ULL * TIME_S) / 3ULL}},
-			    6U};
+	} svc_start_list = {
+	    {{"gps", gps_init, gps_main, 10ULL * TIME_MS},
+	     {"sensors", sensors_init, sensors_main, 50ULL * TIME_MS},
+	     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
+	     {"telemetry", rhex_telemetry_init, rhex_telemetry_main, 100ULL * TIME_MS},
+	     {"rc", rc_init, rc_main, 30ULL * TIME_MS},
+	     {"rssi", rssi_tx_init, rssi_tx_main, (1ULL * TIME_S) / 3ULL}},
+	    6U};
 
 	size_t i;
 
