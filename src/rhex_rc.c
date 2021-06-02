@@ -12,12 +12,13 @@
 #include <sharedmem.h>
 #include <svc_context.h>
 #include <wfb/wfb_rx.h>
+#include <wfb/wfb_status.h>
 
 static shm_t rc_shm;
 static shm_t rc_status_shm;
 
 static rc_data_t rc_data;
-static rc_status_t rc_status;
+static wifibroadcast_rx_status_t_rc rc_status;
 
 int
 rc_init(void)
@@ -72,12 +73,12 @@ rc_main(void)
 			FD_SET(rc_rx.iface[i].selectable_fd, &readset);
 		}
 
-		int8_t best_dbm = -127;
-
 		int n =
 		    select(30, &readset, NULL, NULL, &to); // TODO: check what the 30 does exactly
 
 		if (n > 0) {
+			rc_status.wifi_adapter_cnt = rc_rx.count;
+			rc_status.last_update = time(NULL);
 			for (i = 0; i < rc_rx.count; i++) {
 				if (FD_ISSET(rc_rx.iface[i].selectable_fd, &readset)) {
 					wfb_rx_packet_t rx_data = {
@@ -140,15 +141,13 @@ rc_main(void)
 							rc_status.received_packet_cnt++;
 						}
 
-						if (rx_data.dbm > best_dbm) {
-							best_dbm = rx_data.dbm;
-						}
+						rc_status.adapter[i].current_signal_dbm =
+						    rx_data.dbm;
 					}
 				}
 			}
 		}
 
-		rc_status.signal_dbm = best_dbm;
 		shm_map_write(&rc_status_shm, &rc_status, sizeof(rc_status));
 	}
 
