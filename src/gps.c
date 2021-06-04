@@ -268,11 +268,7 @@ gps_main(void)
 	FD_ZERO(&readfs);
 	FD_SET(gps_fd, &readfs);
 
-	for (;;) {
-		if (!svc_cycle()) {
-			break;
-		}
-
+	while (svc_cycle()) {
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 
