@@ -32,7 +32,7 @@ rc_init(void)
 int
 rc_main(void)
 {
-	log_inf("RX R/C Telemetry started\n");
+	log_inf("RX R/C Telemetry started");
 
 	shm_map_open("shm_rc", &rc_shm);
 	shm_map_open("shm_rc_status", &rc_status_shm);
