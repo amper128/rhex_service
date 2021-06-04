@@ -99,8 +99,10 @@ svc_cycle(void)
 
 	const svc_context_t *ctx = get_svc_context();
 
-	if (!wait_cycle(ctx->timerfd)) {
-		result = false;
+	if (ctx->period > 0ULL) {
+		if (!wait_cycle(ctx->timerfd)) {
+			result = false;
+		}
 	}
 
 	if (!check_watchdog(ctx)) {

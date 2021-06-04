@@ -12,9 +12,10 @@
 #include <platform.h>
 
 typedef struct {
+	uint64_t period;
+	uint64_t watchdog;
 	int timerfd;
 	log_buffer_t *log_buffer;
-	uint64_t watchdog;
 } svc_context_t;
 
 const svc_context_t *get_svc_context(void);

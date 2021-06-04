@@ -71,10 +71,13 @@ start_svc(const svc_desc_t *svc_desc)
 		logger_init();
 
 		/* setup timer */
-		svc->ctx->timerfd = timerfd_init(svc_desc->period, svc_desc->period);
-		if (svc->ctx->timerfd < 0) {
-			log_err("cannot setup timer");
-			exit(1);
+		svc->ctx->period = svc_desc->period;
+		if (svc->ctx->period > 0ULL) {
+			svc->ctx->timerfd = timerfd_init(svc_desc->period, svc_desc->period);
+			if (svc->ctx->timerfd < 0) {
+				log_err("cannot setup timer");
+				exit(1);
+			}
 		}
 
 		exit(svc_desc->main());
