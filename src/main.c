@@ -6,6 +6,7 @@
  * @brief Точка входа сервиса, основные функции
  */
 
+#include <camera.h>
 #include <gps.h>
 #include <log.h>
 #include <logger.h>
@@ -103,8 +104,9 @@ start_microservices(void)
 	     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
 	     {"telemetry", rhex_telemetry_init, rhex_telemetry_main, 100ULL * TIME_MS},
 	     {"rc", rc_init, rc_main, 30ULL * TIME_MS},
-	     {"rssi", rssi_tx_init, rssi_tx_main, (1ULL * TIME_S) / 3ULL}},
-	    6U};
+	     {"rssi", rssi_tx_init, rssi_tx_main, (1ULL * TIME_S) / 3ULL},
+	     {"camera", camera_init, camera_main, 0ULL}},
+	    7U};
 
 	size_t i;
 
