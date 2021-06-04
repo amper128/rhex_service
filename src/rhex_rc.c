@@ -68,13 +68,16 @@ rc_main(void)
 		to.tv_usec = 1e5; // 100ms timeout
 		fd_set readset;
 		FD_ZERO(&readset);
+		int nfds = 0;
 
 		for (i = 0; i < rc_rx.count; ++i) {
 			FD_SET(rc_rx.iface[i].selectable_fd, &readset);
+			if (rc_rx.iface[i].selectable_fd > nfds) {
+				nfds = rc_rx.iface[i].selectable_fd;
+			}
 		}
 
-		int n =
-		    select(30, &readset, NULL, NULL, &to); // TODO: check what the 30 does exactly
+		int n = select(nfds + 1, &readset, NULL, NULL, &to);
 
 		if (n > 0) {
 			rc_status.wifi_adapter_cnt = rc_rx.count;
