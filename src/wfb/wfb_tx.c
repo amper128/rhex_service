@@ -60,7 +60,7 @@ struct header_s {
 static struct header_s header;
 
 int
-wfb_open_sock(const char ifname[])
+wfb_open_sock(const if_desc_t *iface)
 {
 	struct sockaddr_ll ll_addr;
 	struct ifreq ifr;
@@ -77,13 +77,8 @@ wfb_open_sock(const char ifname[])
 	ll_addr.sll_protocol = 0;
 	ll_addr.sll_halen = ETH_ALEN;
 
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1U);
-
-	if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0) {
-		log_err("ioctl(SIOCGIFINDEX) failed");
-		exit(1);
-	}
-
+	strncpy(ifr.ifr_name, iface->ifname, IFNAMSIZ);
+	ifr.ifr_ifindex = iface->ifi_index;
 	ll_addr.sll_ifindex = ifr.ifr_ifindex;
 
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
@@ -337,7 +332,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts)
 				wfb_tx->type[num_interfaces] = 0;
 			}
 
-			wfb_tx->sock[wfb_tx->count] = wfb_open_sock(if_list[i].ifname);
+			wfb_tx->sock[wfb_tx->count] = wfb_open_sock(&if_list[i]);
 			if (wfb_tx->sock[wfb_tx->count] > 0) {
 				wfb_tx->count++;
 

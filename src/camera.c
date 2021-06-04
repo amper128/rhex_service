@@ -15,8 +15,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define MAX_PACKET_LENGTH 4192
-
 typedef struct {
 	int stdout_fds[2];
 	int stdin_fds[2];
@@ -138,7 +136,7 @@ camera_start(camera_desc_t *cam_desc)
 }
 
 static int
-camera_cycle(camera_desc_t *cd, wfb_tx_rawsock_t *wfb_stream, uint8_t cam_buf[])
+camera_cycle(camera_desc_t *cd, wfb_stream_t *wfb_stream)
 {
 	int result = 0;
 
@@ -156,8 +154,8 @@ camera_cycle(camera_desc_t *cd, wfb_tx_rawsock_t *wfb_stream, uint8_t cam_buf[])
 		fd_set readset;
 		FD_ZERO(&readset);
 
-		int nfds = cd->stdin_fds[0];
-		FD_SET(cd->stdin_fds[0], &readset);
+		int nfds = cd->stdout_fds[0];
+		FD_SET(cd->stdout_fds[0], &readset);
 		FD_SET(cd->stderr_fds[0], &readset);
 		if (cd->stderr_fds[0] > nfds) {
 			nfds = cd->stderr_fds[0];
@@ -193,14 +191,15 @@ camera_cycle(camera_desc_t *cd, wfb_tx_rawsock_t *wfb_stream, uint8_t cam_buf[])
 
 		/* we have a stream data */
 		if (FD_ISSET(cd->stdout_fds[0], &readset)) {
-			int r = read(cd->stdout_fds[0], cam_buf, MAX_PACKET_LENGTH);
+			static uint8_t tmp_buf[MAX_PACKET_LENGTH];
+			int r = read(cd->stdout_fds[0], tmp_buf, MAX_PACKET_LENGTH);
 			if (r < 0) {
 				log_err("read() error");
 				result = -1;
 				break;
 			}
 
-			wfb_tx_stream(wfb_stream, cam_buf, (uint16_t)r);
+			wfb_tx_stream(wfb_stream, tmp_buf, (uint16_t)r);
 		}
 	} while (false);
 
@@ -221,10 +220,8 @@ camera_main(void)
 	int result = 0;
 
 	do {
-		uint8_t cam_buf[MAX_PACKET_LENGTH];
-
-		wfb_tx_rawsock_t wfb_stream;
-		result = wfb_stream_init(&wfb_stream, cam_buf, 0, 1, false, false, false);
+		wfb_stream_t wfb_stream;
+		result = wfb_stream_init(&wfb_stream, 0, 1, false, false, false);
 		if (result < 0) {
 			break;
 		}
@@ -237,7 +234,7 @@ camera_main(void)
 		}
 
 		while (svc_cycle()) {
-			if (camera_cycle(&cd, &wfb_stream, cam_buf) < 0) {
+			if (camera_cycle(&cd, &wfb_stream) < 0) {
 				break;
 			}
 		}

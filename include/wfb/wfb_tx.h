@@ -19,7 +19,7 @@ typedef struct {
 	size_t stream_phdr_len;
 } wfb_tx_t;
 
-int wfb_open_sock(const char ifname[]);
+int wfb_open_sock(const if_desc_t *iface);
 
 int wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts);
 

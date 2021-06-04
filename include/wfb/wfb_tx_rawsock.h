@@ -10,6 +10,8 @@
 
 #include <wfb/wfb_tx.h>
 
+#define MAX_PACKET_LENGTH (4192)
+
 typedef struct {
 	int valid;
 	int crc_correct;
@@ -25,12 +27,13 @@ typedef struct {
 
 typedef struct {
 	wfb_tx_t wfb_tx;
-	size_t stream_phdr_len;
+	size_t phdr_len;
 	input_buffer_t input_buffer;
 	int port;
-} wfb_tx_rawsock_t;
+	uint8_t buf[MAX_PACKET_LENGTH];
+} wfb_stream_t;
 
-int wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int packet_type,
-		    bool useMCS, bool useSTBC, bool useLDPC);
+int wfb_stream_init(wfb_stream_t *wfb_stream, int port, int packet_type, bool useMCS, bool useSTBC,
+		    bool useLDPC);
 
-void wfb_tx_stream(wfb_tx_rawsock_t *wfb_stream, uint8_t data[], uint16_t len);
+void wfb_tx_stream(wfb_stream_t *wfb_stream, uint8_t data[], uint16_t len);

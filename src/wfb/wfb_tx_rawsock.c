@@ -35,7 +35,6 @@
 #include <wfb/fec.h>
 #include <wfb/wfb_tx_rawsock.h>
 
-#define MAX_PACKET_LENGTH 4192
 #define MAX_USER_PACKET_LENGTH 2278
 #define MAX_DATA_OR_FEC_PACKETS_PER_BLOCK 32
 
@@ -65,8 +64,6 @@ static size_t param_fec_packets_per_block = 4U;
 static size_t param_packet_length = 1024U;
 static size_t param_min_packet_length = 24U;
 static size_t param_measure = 0U;
-
-static uint8_t packet_transmit_buffer[MAX_PACKET_LENGTH];
 
 static int skipfec = 0;
 static int block_cnt = 0;
@@ -169,11 +166,11 @@ alloc_packet_buffer_list(size_t num_packets, size_t packet_length)
 /*=========================================================*/
 
 static int
-wfb_open_rawsock(const char *ifname)
+wfb_open_rawsock(const if_desc_t *iface)
 {
 	int sock;
 
-	sock = wfb_open_sock(ifname);
+	sock = wfb_open_sock(iface);
 	if (sock == -1) {
 		exit(1);
 	}
@@ -379,23 +376,22 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 }
 
 static int
-pb_transmit_packet(wfb_tx_t *wfb_tx, int seq_nr, uint8_t *packet_transmit_buffer,
-		   int packet_header_len, const uint8_t *packet_data, int packet_length)
+pb_transmit_packet(wfb_stream_t *stream, int seq_nr, const uint8_t *packet_data, int packet_length)
 {
 	/* Add header outside of FEC */
-	wifi_packet_header_t *wph =
-	    (wifi_packet_header_t *)(packet_transmit_buffer + packet_header_len);
+	wifi_packet_header_t *wph = (wifi_packet_header_t *)(stream->buf + stream->phdr_len);
 
 	wph->sequence_number = seq_nr;
 
-	memcpy(packet_transmit_buffer + packet_header_len + sizeof(wifi_packet_header_t),
-	       packet_data, packet_length);
+	memcpy(stream->buf + stream->phdr_len + sizeof(wifi_packet_header_t), packet_data,
+	       packet_length);
 
-	int plen = packet_length + packet_header_len + sizeof(wifi_packet_header_t);
+	int plen = packet_length + stream->phdr_len + sizeof(wifi_packet_header_t);
 
 	size_t i = 0;
-	for (i = 0; i < wfb_tx->count; i++) {
-		if (write(wfb_tx->sock[i], packet_transmit_buffer, plen) < 0) {
+	for (i = 0; i < stream->wfb_tx.count; i++) {
+		if (write(stream->wfb_tx.sock[i], stream->buf, plen) < 0) {
+			log_warn("write failed: %i", errno);
 			return 1;
 		}
 	}
@@ -404,8 +400,7 @@ pb_transmit_packet(wfb_tx_t *wfb_tx, int seq_nr, uint8_t *packet_transmit_buffer
 }
 
 static void
-pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packet_length,
-		  uint8_t *packet_transmit_buffer, int packet_header_len,
+pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int packet_length,
 		  int data_packets_per_block, int fec_packets_per_block)
 {
 	uint8_t *data_blocks[MAX_DATA_OR_FEC_PACKETS_PER_BLOCK];
@@ -431,8 +426,8 @@ pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packe
 			   (unsigned char **)fec_blocks, fec_packets_per_block);
 	}
 
-	uint8_t *pb = packet_transmit_buffer;
-	pb += packet_header_len;
+	uint8_t *pb = stream->buf;
+	pb += stream->phdr_len;
 
 	int di = 0;
 	int fi = 0;
@@ -446,8 +441,8 @@ pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packe
 	 */
 	while ((di < data_packets_per_block) || (fi < fec_packets_per_block)) {
 		if (di < data_packets_per_block) {
-			if (pb_transmit_packet(wfb_tx, seq_nr_tmp, packet_transmit_buffer,
-					       packet_header_len, data_blocks[di], packet_length)) {
+			if (pb_transmit_packet(stream, seq_nr_tmp, data_blocks[di],
+					       packet_length)) {
 				log_warn("packet send failed");
 			}
 
@@ -457,17 +452,15 @@ pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packe
 
 		if (fi < fec_packets_per_block) {
 			if (skipfec < 1) {
-				if (pb_transmit_packet(wfb_tx, seq_nr_tmp, packet_transmit_buffer,
-						       packet_header_len, fec_blocks[fi],
+				if (pb_transmit_packet(stream, seq_nr_tmp, fec_blocks[fi],
 						       packet_length)) {
 					// td1->tx_status->injection_fail_cnt++;
 					log_warn("packet send failed");
 				}
 			} else {
 				if (counterfec % 2 == 0) {
-					if (pb_transmit_packet(
-						wfb_tx, seq_nr_tmp, packet_transmit_buffer,
-						packet_header_len, fec_blocks[fi], packet_length)) {
+					if (pb_transmit_packet(stream, seq_nr_tmp, fec_blocks[fi],
+							       packet_length)) {
 						// td1->tx_status->injection_fail_cnt++;
 						log_warn("packet send failed");
 					}
@@ -554,9 +547,11 @@ pb_transmit_block(wfb_tx_t *wfb_tx, packet_buffer_t *pbl, int *seq_nr, int packe
 }
 
 int
-wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int packet_type,
-		bool useMCS, bool useSTBC, bool useLDPC)
+wfb_stream_init(wfb_stream_t *stream, int port, int packet_type, bool useMCS, bool useSTBC,
+		bool useLDPC)
 {
+	memset(stream, 0, sizeof(wfb_stream_t));
+
 	if_desc_t if_list[NL_MAX_IFACES];
 	int res;
 
@@ -595,24 +590,24 @@ wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int pa
 		u8aRadiotapHeader80211N[11] = mcs_flags;
 		u8aRadiotapHeader80211N[12] = param_data_rate;
 
-		wfb_stream->stream_phdr_len = packet_header_init80211N(tx_buf, packet_type, port);
+		stream->phdr_len = packet_header_init80211N(stream->buf, packet_type, port);
 	} else {
-		wfb_stream->stream_phdr_len =
-		    packet_header_init(tx_buf, packet_type, param_data_rate, port);
+		stream->phdr_len =
+		    packet_header_init(stream->buf, packet_type, param_data_rate, port);
 	}
 
-	wfb_stream->input_buffer.seq_nr = 0;
-	wfb_stream->input_buffer.curr_pb = 0;
-	wfb_stream->input_buffer.pbl =
+	stream->input_buffer.seq_nr = 0;
+	stream->input_buffer.curr_pb = 0;
+	stream->input_buffer.pbl =
 	    alloc_packet_buffer_list(param_data_packets_per_block, MAX_PACKET_LENGTH);
 
-	wfb_stream->port = port;
+	stream->port = port;
 
 	/*
 	 * Prepare the buffers with headers
 	 */
 	for (i = 0; i < param_data_packets_per_block; ++i) {
-		wfb_stream->input_buffer.pbl[i].len = 0;
+		stream->input_buffer.pbl[i].len = 0;
 	}
 
 	fec_init();
@@ -624,9 +619,8 @@ wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int pa
 	telemetry_init(&td);*/
 
 	for (i = 0; (i < num_if) && (num_interfaces < NL_MAX_IFACES); i++) {
-		wfb_stream->wfb_tx.sock[wfb_stream->wfb_tx.count] =
-		    wfb_open_rawsock(if_list[i].ifname);
-		wfb_stream->wfb_tx.count++;
+		stream->wfb_tx.sock[stream->wfb_tx.count] = wfb_open_rawsock(&if_list[i]);
+		stream->wfb_tx.count++;
 
 		/*
 		 * Wait a bit between configuring interfaces to reduce Atheros and Pi USB flakiness
@@ -638,7 +632,7 @@ wfb_stream_init(wfb_tx_rawsock_t *wfb_stream, uint8_t tx_buf[], int port, int pa
 }
 
 void
-wfb_tx_stream(wfb_tx_rawsock_t *wfb_stream, uint8_t data[], uint16_t len)
+wfb_tx_stream(wfb_stream_t *wfb_stream, uint8_t data[], uint16_t len)
 {
 	uint16_t offset = 0U;
 
@@ -684,10 +678,8 @@ wfb_tx_stream(wfb_tx_rawsock_t *wfb_stream, uint8_t data[], uint16_t len)
 			 * Check if this block is finished
 			 */
 			if (wfb_stream->input_buffer.curr_pb == param_data_packets_per_block - 1) {
-				pb_transmit_block(&wfb_stream->wfb_tx, input->pbl, &(input->seq_nr),
-						  param_packet_length, packet_transmit_buffer,
-						  wfb_stream->stream_phdr_len,
-						  param_data_packets_per_block,
+				pb_transmit_block(wfb_stream, input->pbl, &(input->seq_nr),
+						  param_packet_length, param_data_packets_per_block,
 						  param_fec_packets_per_block);
 				input->curr_pb = 0;
 			} else {
