@@ -338,10 +338,12 @@ wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts)
 			}
 
 			wfb_tx->sock[wfb_tx->count] = wfb_open_sock(if_list[i].ifname);
-			wfb_tx->count++;
+			if (wfb_tx->sock[wfb_tx->count] > 0) {
+				wfb_tx->count++;
 
-			usleep(10000); // wait a bit between configuring interfaces to reduce
-				       // Atheros and Pi USB flakiness
+				usleep(10000); // wait a bit between configuring interfaces to
+					       // reduce Atheros and Pi USB flakiness
+			}
 		}
 
 		if (result != 0) {
