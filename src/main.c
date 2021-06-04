@@ -99,7 +99,7 @@ start_microservices(void)
 		svc_desc_t svc[SERVICES_MAX];
 		size_t count;
 	} svc_start_list = {
-	    {{"gps", gps_init, gps_main, 10ULL * TIME_MS},
+	    {{"gps", gps_init, gps_main, 0ULL},
 	     {"sensors", sensors_init, sensors_main, 50ULL * TIME_MS},
 	     {"motion", motion_init, motion_main, 10ULL * TIME_MS},
 	     {"telemetry", rhex_telemetry_init, rhex_telemetry_main, 100ULL * TIME_MS},
