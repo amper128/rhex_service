@@ -79,7 +79,7 @@ camera_start(camera_desc_t *cam_desc)
 
 			/* run program */
 			static char *const argv[] = {/* progname */
-						     "raspivid",
+						     "/usr/bin/raspivid",
 						     /* width */
 						     "-w", "1920",
 						     /* height */
