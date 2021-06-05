@@ -84,9 +84,11 @@ check_watchdog(const svc_context_t *ctx)
 
 	uint64_t tm = svc_get_time();
 	uint64_t diff = tm - ctx->watchdog;
-	if (diff > TIME_DEADLINE) {
-		log_warn("watchdog is out: %llu > %llu", diff, TIME_DEADLINE);
-		result = false;
+	if (diff < INT64_MAX) {
+		if (diff > TIME_DEADLINE) {
+			log_warn("watchdog is out: %llu > %llu", diff, TIME_DEADLINE);
+			result = false;
+		}
 	}
 
 	return result;
