@@ -87,7 +87,7 @@ camera_start(camera_desc_t *cam_desc)
 						     /* bitrate */
 						     "-b", "6000000",
 						     /* keyframe rate */
-						     "-g", "30",
+						     "-g", "10",
 						     /* start immediate */
 						     "-t", "0",
 						     /* codec */
