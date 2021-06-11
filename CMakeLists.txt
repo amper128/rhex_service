@@ -36,30 +36,8 @@ string (REPLACE ";" " " COMPILER_FLAGS "${COMPILER_FLAGS}")
 set(CMAKE_C_FLAGS ${COMPILER_FLAGS})
 
 
-## define rhex_air service
+add_subdirectory(libsvc)
+add_subdirectory(libwfb)
+add_subdirectory(libio)
 
-file(GLOB_RECURSE rhex_air_headers "include/*.h")
-
-add_executable(rhex_air_service
-	src/system/crc.c src/system/i2c.c src/system/log.c
-	src/system/logger.c src/system/netlink.c src/system/sharedmem.c
-	src/system/spi.c src/system/svc.c src/system/timerfd.c
-	src/radiotap/radiotap_rc.c
-	src/wfb/fec.c src/wfb/wfb_rx.c src/wfb/wfb_tx.c src/wfb/wfb_tx_rawsock.c
-	src/sensors/gps.c src/sensors/ina226.c src/sensors/minmea.c src/sensors/sensors.c
-	src/control/camera.c src/control/canbus.c src/control/motion.c
-	src/control/rhex_rc.c src/control/rhex_telemetry.c src/control/rssi_tx.c
-	src/main.c
-	${rhex_air_headers}
-	)
-
-target_include_directories(rhex_air_service
-	PRIVATE
-		include
-	)
-
-target_link_libraries(rhex_air_service
-	-lm
-	-lrt
-	-lpcap
-	)
+add_subdirectory(rhex_air)

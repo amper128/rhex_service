@@ -8,6 +8,6 @@
 
 #pragma once
 
-#include <platform.h>
+#include <svc/platform.h>
 
 uint16_t vt_crc16(uint8_t data[], size_t size, uint16_t seed);

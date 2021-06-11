@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <platform.h>
+#include <svc/platform.h>
 
 #define INA226_DEVICE_ID (0x2260)
 #define INA226_RESET (0x8000)

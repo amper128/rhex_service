@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <platform.h>
+#include <svc/platform.h>
 #include <proto/telemetry.h>
 
 int rhex_telemetry_init(void);

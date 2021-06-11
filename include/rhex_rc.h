@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <platform.h>
+#include <svc/platform.h>
 
 typedef struct {
 	float speed;

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <netlink.h>
-#include <platform.h>
+#include <svc/netlink.h>
+#include <svc/platform.h>
 
 typedef struct {
 	int sock[NL_MAX_IFACES];
