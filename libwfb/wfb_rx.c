@@ -251,17 +251,29 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 }
 
 int
-wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const if_desc_t interfaces[], int port)
+wfb_rx_init(wfb_rx_t *wfb_rx, int port)
 {
 	int result = 0;
-	char path[45], line[100];
+
+	if_desc_t if_list[4U];
+	int if_count;
+
+	if_count = nl_get_wifi_list(if_list);
+	if (if_count < 0) {
+		result = -1;
+		log_err("cannot get wlan list");
+		return result;
+	}
+	size_t num_if = (size_t)if_count;
+
+	char path[128], line[100];
 	FILE *procfile;
 
 	wfb_rx->count = 0U;
 
 	size_t i;
 	for (i = 0U; i < num_if; i++) {
-		snprintf(path, 45, "/sys/class/net/%s/device/uevent", interfaces[i].ifname);
+		snprintf(path, 128, "/sys/class/net/%s/device/uevent", if_list[i].ifname);
 		procfile = fopen(path, "r");
 		if (!procfile) {
 			log_err("opening %s failed!", path);
@@ -291,7 +303,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const if_desc_t interfaces[], int p
 			wfb_rx->type[wfb_rx->count] = (int8_t)(1);
 		}
 
-		open_and_configure_interface(interfaces[i].ifname, &wfb_rx->iface[wfb_rx->count],
+		open_and_configure_interface(if_list[i].ifname, &wfb_rx->iface[wfb_rx->count],
 					     port);
 		wfb_rx->count++;
 

@@ -7,7 +7,6 @@
  */
 
 #include <log/log.h>
-#include <svc/netlink.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_rx.h>
@@ -46,17 +45,7 @@ rc_main(void)
 	    0,
 	};
 
-	if_desc_t if_list[4U];
-	int if_count;
-
-	if_count = nl_get_wifi_list(if_list);
-	if (if_count < 0) {
-		result = -1;
-		log_err("cannot get wlan list");
-		return result;
-	}
-
-	result = wfb_rx_init(&rc_rx, (size_t)if_count, if_list, 30);
+	result = wfb_rx_init(&rc_rx, 30);
 	if (result != 0) {
 		return result;
 	}

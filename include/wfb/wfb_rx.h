@@ -33,6 +33,6 @@ typedef struct {
 	uint8_t data[MAX_MTU];
 } wfb_rx_packet_t;
 
-int wfb_rx_init(wfb_rx_t *wfb_rx, size_t num_if, const if_desc_t interfaces[], int port);
+int wfb_rx_init(wfb_rx_t *wfb_rx, int port);
 
 int wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data);

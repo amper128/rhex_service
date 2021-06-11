@@ -3,7 +3,7 @@
  * @author Алексей Хохлов <root@amper.me>
  * @copyright WTFPL License
  * @date 2021
- * @brief Телеметрия канала связи и оборудования
+ * @brief Телеметрия канала связи и оборудования, передача
  */
 
 #include <stdio.h>
