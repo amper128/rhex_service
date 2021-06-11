@@ -8,12 +8,13 @@
 
 #include <math.h>
 
-#include <ina226.h>
 #include <io/i2c.h>
-#include <sensors.h>
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
+
+#include <ina226.h>
+#include <sensors.h>
 
 static shm_t sensors_shm;
 

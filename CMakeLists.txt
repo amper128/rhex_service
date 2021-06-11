@@ -37,6 +37,7 @@ set(CMAKE_C_FLAGS ${COMPILER_FLAGS})
 
 
 add_subdirectory(libsvc)
+add_subdirectory(liblog)
 add_subdirectory(libwfb)
 add_subdirectory(libio)
 

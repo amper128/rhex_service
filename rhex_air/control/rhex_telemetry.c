@@ -10,9 +10,9 @@
 
 #include <crc.h>
 #include <gps.h>
+#include <log/log.h>
 #include <rhex_telemetry.h>
 #include <sensors.h>
-#include <svc/log.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_tx.h>

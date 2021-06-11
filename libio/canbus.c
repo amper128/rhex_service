@@ -14,7 +14,7 @@
 
 #include <can_proto.h>
 #include <io/canbus.h>
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/netlink.h>
 #include <svc/platform.h>
 

@@ -6,7 +6,7 @@
  * @brief Передача видеопотока
  */
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/platform.h>
 #include <svc/svc.h>
 #include <wfb/wfb_tx_rawsock.h>

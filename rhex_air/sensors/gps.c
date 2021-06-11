@@ -7,14 +7,15 @@
  */
 
 #include <fcntl.h>
-#include <minmea.h>
 #include <string.h>
 #include <termios.h>
 
-#include <gps.h>
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
+
+#include <gps.h>
+#include <minmea.h>
 
 static gps_status_t tmp_gps_status;
 

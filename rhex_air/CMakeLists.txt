@@ -26,6 +26,7 @@ target_link_libraries(rhex_air_service
 	-lm
 	-lrt
 	svc
+	log
 	wfb
 	io
 	)

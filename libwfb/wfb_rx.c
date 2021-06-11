@@ -22,7 +22,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <private/radiotap_iter.h>
 #include <private/radiotap_rc.h>
 #include <wfb/wfb_rx.h>

@@ -30,8 +30,8 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
+#include <log/log.h>
 #include <private/fec.h>
-#include <svc/log.h>
 #include <svc/svc.h>
 #include <wfb/wfb_tx_rawsock.h>
 

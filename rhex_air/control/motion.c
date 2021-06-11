@@ -6,15 +6,16 @@
  * @brief Функции планирования движения
  */
 
+#include <math.h>
+#include <string.h>
+
 #include <io/canbus.h>
-#include <motion.h>
-#include <rhex_rc.h>
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 
-#include <math.h>
-#include <string.h>
+#include <motion.h>
+#include <rhex_rc.h>
 
 static shm_t rc_shm;
 

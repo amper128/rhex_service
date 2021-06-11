@@ -12,8 +12,8 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
-#include <svc/log.h>
 #include <io/spi.h>
+#include <log/log.h>
 
 bool
 spi_open_dev(spi_desc_t *spi_desc, int dev, int speed, int mode)

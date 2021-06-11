@@ -6,21 +6,22 @@
  * @brief Точка входа сервиса, основные функции
  */
 
-#include <camera.h>
-#include <gps.h>
-#include <svc/log.h>
-#include <svc/logger.h>
-#include <motion.h>
-#include <rhex_rc.h>
-#include <rhex_telemetry.h>
-#include <rssi_tx.h>
-#include <sensors.h>
+#include <sys/prctl.h>
+
+#include <log/log.h>
+#include <log/read.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <svc/timerfd.h>
 #include <wfb/wfb_status.h>
 
-#include <sys/prctl.h>
+#include <camera.h>
+#include <gps.h>
+#include <motion.h>
+#include <rhex_rc.h>
+#include <rhex_telemetry.h>
+#include <rssi_tx.h>
+#include <sensors.h>
 
 #define SERVICES_MAX (32U)
 
@@ -54,7 +55,7 @@ start_svc(const svc_desc_t *svc_desc)
 	svc_t *svc = &svc_list[svc_count];
 
 	svc->ctx = svc_create_context(svc_desc->name);
-	svc->ctx->log_buffer = logger_create(svc_desc->name);
+	svc->ctx->log_buffer = log_create(svc_desc->name);
 
 	pid_t pid;
 
@@ -69,7 +70,7 @@ start_svc(const svc_desc_t *svc_desc)
 		svc_init_context(svc->ctx);
 
 		prctl(PR_SET_NAME, (unsigned long)svc_desc->name, 0, 0, 0);
-		logger_init();
+		log_init();
 
 		/* setup timer */
 		svc->ctx->period = svc_desc->period;
@@ -124,11 +125,11 @@ start_microservices(void)
 static void
 main_cycle(void)
 {
-	log_reader_print("main", svc_main->log_buffer);
+	log_print("main", svc_main->log_buffer);
 	size_t i;
 	for (i = 0U; i < svc_count; i++) {
 		svc_list[i].ctx->watchdog = svc_get_time();
-		log_reader_print(svc_list[i].name, svc_list[i].ctx->log_buffer);
+		log_print(svc_list[i].name, svc_list[i].ctx->log_buffer);
 	}
 }
 
@@ -140,8 +141,8 @@ main(int argc, char **argv)
 
 	svc_main = svc_create_context("main");
 	svc_init_context(svc_main);
-	svc_main->log_buffer = logger_create("main");
-	logger_init();
+	svc_main->log_buffer = log_create("main");
+	log_init();
 
 	int timerfd;
 

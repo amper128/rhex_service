@@ -11,7 +11,7 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/sharedmem.h>
 
 #define SHM_COPIES (4U)

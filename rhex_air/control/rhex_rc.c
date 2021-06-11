@@ -6,13 +6,14 @@
  * @brief Команды управления
  */
 
-#include <rhex_rc.h>
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/netlink.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_rx.h>
 #include <wfb/wfb_status.h>
+
+#include <rhex_rc.h>
 
 static shm_t rc_shm;
 static shm_t rc_status_shm;

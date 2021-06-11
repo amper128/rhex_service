@@ -8,8 +8,6 @@ file(GLOB_RECURSE libsvc_headers "include/*.h")
 
 target_sources(svc
 	PRIVATE
-		log.c
-		logger.c
 		netlink.c
 		sharedmem.c
 		svc.c

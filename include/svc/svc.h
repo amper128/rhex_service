@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <svc/logger.h>
+#include <log/log.h>
 #include <svc/platform.h>
 
 typedef struct {

@@ -10,7 +10,7 @@
 #include <sys/mman.h>
 #include <time.h>
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/platform.h>
 #include <svc/svc.h>
 #include <svc/timerfd.h>

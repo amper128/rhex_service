@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 
 #include <io/i2c.h>
-#include <svc/log.h>
+#include <log/log.h>
 
 static inline int
 i2c_smbus_access(int fd, char rw, uint8_t command, int size, union i2c_smbus_data *data)

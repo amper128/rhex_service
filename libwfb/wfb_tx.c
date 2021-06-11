@@ -30,7 +30,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <wfb/wfb_tx.h>
 
 /* header buffer for atheros */

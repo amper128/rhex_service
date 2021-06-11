@@ -6,8 +6,8 @@
  * @brief Функции журналирования
  */
 
-#include <svc/log.h>
-#include <svc/logger.h>
+#include <log/log.h>
+#include <private/record.h>
 
 void
 log_dbg(char *format, ...)

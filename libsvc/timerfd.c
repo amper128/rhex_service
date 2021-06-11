@@ -8,7 +8,7 @@
 
 #include <sys/timerfd.h>
 
-#include <svc/log.h>
+#include <log/log.h>
 #include <svc/timerfd.h>
 
 int

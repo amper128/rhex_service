@@ -1,15 +1,17 @@
 /**
- * @file logger.h
+ * @file log.h
  * @author Алексей Хохлов <root@amper.me>
  * @copyright WTFPL License
- * @date 2021
- * @brief Работа с журналами
+ * @date 2020-2021
+ * @brief Функции журналирования
  */
 
 #pragma once
 
 #include <stdarg.h>
-#include <stdint.h>
+#include <svc/platform.h>
+
+#define LOG_ITEM_MAXMSG (32U)
 
 enum log_level {
 	LOG_DBG = 0, /**< @brief Уровень отладки */
@@ -18,11 +20,6 @@ enum log_level {
 	LOG_ERR,     /**< @brief Уровень ошибок */
 	LOG_EXC	     /**< @brief Уровень исключений */
 };
-
-#define LOG_ITEM_END (0U)
-#define LOG_ITEM_CONTINUE (1U)
-
-#define LOG_ITEM_MAXMSG (32U)
 
 struct log_record_t {
 	enum log_level level;
@@ -41,12 +38,16 @@ typedef struct {
 	struct log_record_t records[LOG_BUFFER_SIZE];
 } log_buffer_t;
 
-log_buffer_t *logger_create(const char name[]);
+log_buffer_t *log_create(const char name[]);
 
-void logger_init(void);
+void log_init(void);
 
-void log_put_record(enum log_level level, const char format[], va_list args);
+void log_dbg(char *format, ...);
 
-log_buffer_t *get_log_reader(const char name[]);
+void log_inf(char *format, ...);
 
-void log_reader_print(const char name[], log_buffer_t *log);
+void log_warn(char *format, ...);
+
+void log_err(char *format, ...);
+
+void log_exc(char *format, ...);
