@@ -157,18 +157,21 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 
 	pu8Payload += u16HeaderLen;
 	switch (pu8Payload[1]) {
-	case 0xbf: // rts (R/C)
-		//	fprintf(stderr, "rts R/C frame\n");
+	case 0xBF:
+		/* RTS (R/C) */
+		// log_dbg("RTS R/C frame");
 		interface->n80211HeaderLength = 0x04;
 		rx_data->type = 0;
 		break;
-	case 0x01: // data short, rts (telemetry)
-		//	fprintf(stderr, "data short or rts telemetry frame\n");
+	case 0x01:
+		/* Data short, RTS telemetry */
+		// log_dbg("Data short or RTS telemetry frame");
 		interface->n80211HeaderLength = 0x05;
 		rx_data->type = 1;
 		break;
-	case 0x02: // data (telemetry)
-		//	fprintf(stderr, "data telemetry frame\n");
+	case 0x02:
+		/* Data telemetry */
+		// log_dbg("Data telemetry frame");
 		interface->n80211HeaderLength = 0x18;
 		rx_data->type = 1;
 		break;
