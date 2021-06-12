@@ -55,3 +55,17 @@ typedef struct {
 	uint32_t wifi_adapter_cnt;
 	wifi_adapter_rx_status_t adapter[NL_MAX_IFACES];
 } wifibroadcast_rx_status_t_rc;
+
+typedef struct {
+	time_t last_update;
+	uint8_t cpuload;
+	uint8_t temp;
+	uint32_t injected_block_cnt;
+	uint32_t skipped_fec_cnt;
+	uint32_t injection_fail_cnt;
+	uint64_t injection_time_block;
+	uint16_t bitrate_kbit;
+	uint16_t bitrate_measured_kbit;
+	uint8_t cts;
+	uint8_t undervolt;
+} wifibroadcast_rx_status_t_sysair;

@@ -42,3 +42,4 @@ add_subdirectory(libwfb)
 add_subdirectory(libio)
 
 add_subdirectory(rhex_air)
+add_subdirectory(rhex_ground)
