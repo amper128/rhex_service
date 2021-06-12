@@ -9,9 +9,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <svc/netlink.h>
 #include <time.h>
-
-#define MAX_PENUMBRA_INTERFACES 8
 
 typedef struct {
 	uint32_t received_packet_cnt;
@@ -33,7 +32,7 @@ typedef struct {
 	uint32_t kbitrate;
 	uint32_t current_air_datarate_kbit;
 	uint32_t wifi_adapter_cnt;
-	wifi_adapter_rx_status_t adapter[MAX_PENUMBRA_INTERFACES];
+	wifi_adapter_rx_status_t adapter[NL_MAX_IFACES];
 } wifibroadcast_rx_status_t;
 
 typedef struct {
@@ -41,7 +40,7 @@ typedef struct {
 	uint32_t injected_block_cnt;
 	uint32_t skipped_fec_cnt;
 	uint32_t injection_fail_cnt;
-	long long injection_time_block;
+	uint64_t injection_time_block;
 } wifibroadcast_tx_status_t;
 
 typedef struct {
@@ -54,5 +53,5 @@ typedef struct {
 	uint32_t tx_restart_cnt;
 	uint32_t kbitrate;
 	uint32_t wifi_adapter_cnt;
-	wifi_adapter_rx_status_t adapter[MAX_PENUMBRA_INTERFACES];
+	wifi_adapter_rx_status_t adapter[NL_MAX_IFACES];
 } wifibroadcast_rx_status_t_rc;
