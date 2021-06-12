@@ -6,6 +6,15 @@
  * @brief Наземная станция, точка входа
  */
 
+/* QOpenHD:
+ * VOT telemetry - port 5011;
+ * rx_status telemetry - port 5154:
+ * - wifibroadcast_rx_status_forward_t;
+ * Settings - port 5115;
+ * Video RX - port 5600;
+ * RC tx - port 5565;
+ */
+
 #include <sys/prctl.h>
 
 #include <log/log.h>
