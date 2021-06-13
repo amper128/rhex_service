@@ -49,7 +49,7 @@ ina226_set_shunt(int fd, float shunt)
 	double lsb = 8.0 / 32768;
 	double cal = 0.00512 / (lsb * shunt);
 
-	uint16_t reg = bswap_16((int16_t)cal);
+	uint16_t reg = bswap_16((uint16_t)cal);
 	return i2c_write_reg_16(fd, INA226_REG_CALIBRATION, reg);
 }
 

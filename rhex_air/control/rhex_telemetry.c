@@ -41,10 +41,10 @@ read_gps_status(vector_telemetry_t *vot)
 	vot->LongitudeX1E7 = (int32_t)(conv * X1E7);
 
 	conv = gps_status->speed;
-	vot->GroundspeedKPHX10 = (int16_t)(conv * 10.0);
+	vot->GroundspeedKPHX10 = (uint16_t)(conv * 10.0);
 
 	conv = gps_status->course;
-	vot->CourseDegreesX10 = (int16_t)(conv * 10.0);
+	vot->CourseDegreesX10 = (uint16_t)(conv * 10.0);
 
 	conv = gps_status->altitude;
 	vot->GPSAltitudecm = (int32_t)(conv * 100.0);
@@ -74,10 +74,10 @@ read_sensors_status(vector_telemetry_t *vot)
 	vot->YawDegrees = (int16_t)(conv * 10.0);
 
 	conv = p.s->vbat;
-	vot->PackVoltageX100 = (int16_t)(conv * 100.0);
+	vot->PackVoltageX100 = (uint16_t)(conv * 100.0);
 
 	conv = p.s->curr;
-	vot->PackCurrentX100 = (int16_t)(conv * 1000.0);
+	vot->PackCurrentX100 = (uint16_t)(conv * 1000.0);
 
 	conv = p.s->pwr;
 	vot->mAHConsumed = conv;

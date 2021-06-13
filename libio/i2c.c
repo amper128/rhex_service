@@ -17,7 +17,7 @@
 #include <log/log.h>
 
 static inline int
-i2c_smbus_access(int fd, char rw, uint8_t command, int size, union i2c_smbus_data *data)
+i2c_smbus_access(int fd, uint8_t rw, uint8_t command, uint32_t size, union i2c_smbus_data *data)
 {
 	struct i2c_smbus_ioctl_data args;
 

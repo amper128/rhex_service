@@ -25,11 +25,11 @@ timerfd_init(uint64_t start_nsec, uint64_t period_nsec)
 
 		struct itimerspec t;
 
-		t.it_value.tv_sec = start_nsec / TIME_S;
-		t.it_value.tv_nsec = start_nsec % TIME_S;
+		t.it_value.tv_sec = (long int)(start_nsec / TIME_S);
+		t.it_value.tv_nsec = (long int)(start_nsec % TIME_S);
 
-		t.it_interval.tv_sec = period_nsec / TIME_S;
-		t.it_interval.tv_nsec = period_nsec % TIME_S;
+		t.it_interval.tv_sec = (long int)(period_nsec / TIME_S);
+		t.it_interval.tv_nsec = (long int)(period_nsec % TIME_S);
 
 		if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &t, NULL) == -1) {
 			log_err("timerfd_settime error");

@@ -16,7 +16,7 @@
 #include <log/log.h>
 
 bool
-spi_open_dev(spi_desc_t *spi_desc, int dev, int speed, int mode)
+spi_open_dev(spi_desc_t *spi_desc, int dev, uint32_t speed, int mode)
 {
 	bool result = false;
 
@@ -67,7 +67,7 @@ spi_open_dev(spi_desc_t *spi_desc, int dev, int speed, int mode)
 }
 
 int
-spi_transfer(const spi_desc_t *spi_desc, uint8_t *data, int len)
+spi_transfer(const spi_desc_t *spi_desc, uint8_t *data, uint32_t len)
 {
 	struct spi_ioc_transfer t;
 

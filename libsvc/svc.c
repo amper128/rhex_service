@@ -64,7 +64,7 @@ svc_get_monotime(void)
 	uint64_t result = 0ULL;
 
 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == 0) {
-		result = ts.tv_nsec + (ts.tv_sec * TIME_S);
+		result = (uint64_t)ts.tv_nsec + ((uint64_t)ts.tv_sec * TIME_S);
 	}
 
 	return result;
@@ -77,7 +77,7 @@ svc_get_time(void)
 	uint64_t result = 0ULL;
 
 	if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
-		result = ts.tv_nsec + (ts.tv_sec * TIME_S);
+		result = (uint64_t)ts.tv_nsec + ((uint64_t)ts.tv_sec * TIME_S);
 	}
 
 	return result;

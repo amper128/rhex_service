@@ -40,9 +40,9 @@ static uint8_t headers_ralink[40];
 /* header buffer for Realtek */
 static uint8_t headers_Realtek[40];
 
-static int headers_atheros_len = 0;
-static int headers_ralink_len = 0;
-static int headers_Realtek_len = 0;
+static size_t headers_atheros_len = 0;
+static size_t headers_ralink_len = 0;
+static size_t headers_Realtek_len = 0;
 
 /* wifi packet to be sent (263 + len and seq + radiotap and ieee headers) */
 static uint8_t packet_buffer_ath[402];
@@ -149,7 +149,7 @@ int flagHelp = 0;
 static void
 wfb_write(wfb_tx_t *wfb_tx, uint32_t seqno, const uint8_t data[], uint16_t len, bool add_header)
 {
-	int padlen = 0;
+	size_t padlen = 0;
 	size_t i;
 	size_t offset = 0U;
 

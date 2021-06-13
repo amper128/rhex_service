@@ -64,7 +64,7 @@ shm_map_init(const char name[], size_t size)
 
 		size_t map_size = calc_shm_size(size, SHM_COPIES);
 
-		if (ftruncate(fd, map_size) == -1) {
+		if (ftruncate(fd, (off_t)map_size) == -1) {
 			log_err("cannot ftruncate()");
 			result = -1;
 			break;

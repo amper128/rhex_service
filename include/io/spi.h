@@ -18,6 +18,6 @@ typedef struct {
 	uint8_t spi_cs_change;
 } spi_desc_t;
 
-bool spi_open_dev(spi_desc_t *spi_desc, int dev, int speed, int mode);
+bool spi_open_dev(spi_desc_t *spi_desc, int dev, uint32_t speed, int mode);
 
-int spi_transfer(const spi_desc_t *spi_desc, uint8_t *data, int len);
+int spi_transfer(const spi_desc_t *spi_desc, uint8_t *data, uint32_t len);

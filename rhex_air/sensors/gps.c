@@ -66,7 +66,7 @@ int2baud(unsigned int value)
 }
 
 static int
-serial_open(const char *name, const int baud)
+serial_open(const char *name, const uint32_t baud)
 {
 	int fd = -1;
 
@@ -85,10 +85,10 @@ serial_open(const char *name, const int baud)
 		speed_t speed;
 
 		tcgetattr(fd, &ios);
-		ios.c_lflag = 0;	 /* disable ECHO, ICANON, etc... */
-		ios.c_oflag &= (~ONLCR); /* Stop \n -> \r\n translation on output */
-		ios.c_iflag &=
-		    (~(ICRNL | INLCR));		/* Stop \r -> \n & \n -> \r translation on input */
+		ios.c_lflag = 0;		   /* disable ECHO, ICANON, etc... */
+		ios.c_oflag &= (tcflag_t)(~ONLCR); /* Stop \n -> \r\n translation on output */
+		ios.c_iflag &= (tcflag_t)(
+		    ~(ICRNL | INLCR));		/* Stop \r -> \n & \n -> \r translation on input */
 		ios.c_iflag |= (IGNCR | IXOFF); /* Ignore \r & XON/XOFF on input */
 
 		speed = int2baud(baud);
@@ -146,7 +146,7 @@ serial_open(const char *name, const int baud)
 }*/
 
 static int
-open_gps(const char *device, int baud)
+open_gps(const char *device, uint32_t baud)
 {
 	int gps_fd = -1;
 

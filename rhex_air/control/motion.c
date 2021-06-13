@@ -226,7 +226,7 @@ make_step(float speed, float steering)
 		} else {
 			data.position = (uint16_t)drv_status[d].pos;
 		}
-		data.speed = (uint16_t)m_speed;
+		data.speed = (int16_t)m_speed;
 
 		msg.msg.src_id = 0x10;
 		msg.msg.dest_id = (uint8_t)((d / 2U) + 1U);

@@ -40,7 +40,7 @@ init_netlink()
 	memset(&local, 0, sizeof(local));
 
 	local.nl_family = AF_NETLINK;
-	local.nl_pid = getpid();
+	local.nl_pid = (uint32_t)getpid();
 	local.nl_groups = 0;
 
 	int b;
@@ -178,7 +178,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 		req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct rtgenmsg));
 		req.hdr.nlmsg_type = RTM_GETLINK;
 		req.hdr.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
-		req.hdr.nlmsg_pid = getpid();
+		req.hdr.nlmsg_pid = (uint32_t)getpid();
 		req.gen.rtgen_family = AF_PACKET;
 
 		uint32_t seq_id;
@@ -191,13 +191,13 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 		size_t if_count = 0U;
 
 		while (result >= 0) {
-			int msg_len;
-			msg_len = netlink_recv(local_buf, seq_id, false);
-			if (msg_len < 0) {
+			int r = netlink_recv(local_buf, seq_id, false);
+			if (r < 0) {
 				result = -1;
 				break;
 			}
 
+			uint32_t msg_len = (uint32_t)r;
 			struct nlmsghdr *nlmsg_ptr;
 			nlmsg_ptr = (struct nlmsghdr *)local_buf;
 			while (NLMSG_OK(nlmsg_ptr, msg_len)) {
@@ -222,7 +222,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 				}
 
 				struct rtattr *attr_ptr;
-				int attr_len;
+				uint32_t attr_len;
 
 				attr_ptr = IFLA_RTA(ifi_ptr);
 				attr_len = nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(*ifi_ptr));

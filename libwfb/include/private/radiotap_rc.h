@@ -16,6 +16,8 @@
 #ifndef __RADIOTAP_H
 #define __RADIOTAP_H
 
+#include <stdint.h>
+
 /**
  * struct ieee82011_radiotap_header - base radiotap header
  */
@@ -42,7 +44,7 @@ struct ieee80211_radiotap_header {
 };
 
 /* version is always 0 */
-#define PKTHDR_RADIOTAP_VERSION	0
+#define PKTHDR_RADIOTAP_VERSION 0
 
 /* see the radiotap website for the descriptions */
 enum ieee80211_radiotap_presence {

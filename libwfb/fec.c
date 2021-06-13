@@ -406,7 +406,7 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
 #endif
 
 static void
-addmul(gf *dst, gf *src, gf c, int sz)
+addmul(gf *dst, gf *src, gf c, size_t sz)
 {
 	// fprintf(stderr, "Dst=%p Src=%p, gf=%02x sz=%d\n", dst, src, c, sz);
 	if (c != 0)
@@ -536,7 +536,7 @@ mul1(gf *dst1, gf *src1, gf c, int sz)
 #endif
 
 static inline void
-mul(gf *dst, gf *src, gf c, int sz)
+mul(gf *dst, gf *src, gf c, size_t sz)
 {
 	/*fprintf(stderr, "%p = %02x * %p\n", dst, c, src);*/
 	if (c != 0)
@@ -564,7 +564,7 @@ invert_mat(gf *src, int k)
 	int ipiv[k];
 	gf id_row[k];
 
-	memset(id_row, 0, k * sizeof(gf));
+	memset(id_row, 0, (size_t)k * sizeof(gf));
 	DEB(pivloops = 0; pivswaps = 0; /* diagnostic */)
 	/*
 	 * ipiv marks elements already used as pivots.
@@ -644,12 +644,12 @@ invert_mat(gf *src, int k)
 		 * we can optimize the addmul).
 		 */
 		id_row[icol] = 1;
-		if (memcmp(pivot_row, id_row, k * sizeof(gf)) != 0) {
+		if (memcmp(pivot_row, id_row, (size_t)k * sizeof(gf)) != 0) {
 			for (p = src, ix = 0; ix < k; ix++, p += k) {
 				if (ix != icol) {
 					c = p[icol];
 					p[icol] = 0;
-					addmul(p, pivot_row, c, k);
+					addmul(p, pivot_row, c, (size_t)k);
 				}
 			}
 		}
@@ -828,7 +828,7 @@ reduce(unsigned int blockSize, unsigned char **data_blocks, unsigned int nr_data
 			unsigned char *src = data_blocks[col];
 			int j;
 			for (j = 0; j < nr_fec_blocks; j++) {
-				int blno = fec_block_nos[j];
+				unsigned int blno = fec_block_nos[j];
 				addmul(fec_blocks[j], src, inverse[blno ^ col ^ 128], blockSize);
 			}
 		}
@@ -856,8 +856,8 @@ long long invTime = 0;
  * it, and multiply reduced vector by it.
  */
 static inline void
-resolve(int blockSize, unsigned char **data_blocks, unsigned char **fec_blocks,
-	unsigned int *fec_block_nos, unsigned int *erased_blocks, short nr_fec_blocks)
+resolve(size_t blockSize, unsigned char **data_blocks, unsigned char **fec_blocks,
+	unsigned int *fec_block_nos, unsigned int *erased_blocks, unsigned short nr_fec_blocks)
 {
 #ifdef PROFILE
 	long long begin;
@@ -874,10 +874,10 @@ resolve(int blockSize, unsigned char **data_blocks, unsigned char **fec_blocks,
 	 * missing data blocks to obtain the FEC blocks we have */
 	for (row = 0, ptr = 0; row < nr_fec_blocks; row++) {
 		int col;
-		int irow = 128 + fec_block_nos[row];
+		unsigned int irow = 128 + fec_block_nos[row];
 		/*assert(irow < fec_blocks+128);*/
 		for (col = 0; col < nr_fec_blocks; col++, ptr++) {
-			int icol = erased_blocks[col];
+			unsigned int icol = erased_blocks[col];
 			matrix[ptr] = inverse[irow ^ icol];
 		}
 	}

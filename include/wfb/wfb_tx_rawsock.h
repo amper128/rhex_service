@@ -20,7 +20,7 @@ typedef struct {
 } packet_buffer_t;
 
 typedef struct {
-	int seq_nr;
+	uint32_t seq_nr;
 	size_t curr_pb;
 	packet_buffer_t *pbl;
 } input_buffer_t;

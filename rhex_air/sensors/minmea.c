@@ -306,8 +306,8 @@ minmea_scan(const char *sentence, const char *format, ...)
 
 				// Extra: fractional time. Saved as microseconds.
 				if (*field++ == '.') {
-					uint32_t value = 0;
-					uint32_t scale = 1000000LU;
+					int32_t value = 0;
+					int32_t scale = 1000000;
 					while (isdigit((unsigned char)*field) && scale > 1) {
 						value = (value * 10) + (*field++ - '0');
 						scale /= 10;

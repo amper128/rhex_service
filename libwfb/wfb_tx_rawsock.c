@@ -68,11 +68,11 @@ static size_t param_measure = 0U;
 static int skipfec = 0;
 static int block_cnt = 0;
 
-static long long took_last = 0;
-static long long took = 0;
+static uint64_t took_last = 0ULL;
+static uint64_t took = 0ULL;
 
-static long long injection_time_now = 0;
-static long long injection_time_prev = 0;
+static uint64_t injection_time_now = 0;
+static uint64_t injection_time_prev = 0;
 
 /*
  * This sits at the payload of the wifi packet (outside of FEC)
@@ -190,9 +190,10 @@ wfb_open_rawsock(const if_desc_t *iface)
 	return sock;
 }
 
-static int
+static size_t
 packet_header_init80211N(uint8_t *packet_header, int type, int port)
 {
+	size_t size = 0U;
 	u8 *pu8 = packet_header;
 
 	int port_encoded = 0;
@@ -212,7 +213,7 @@ packet_header_init80211N(uint8_t *packet_header, int type, int port)
 
 		/* Copy data short header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_data_short, sizeof(u8aIeeeHeader_data_short));
-		pu8 += sizeof(u8aIeeeHeader_data_short);
+		size = sizeof(u8aIeeeHeader_data_short);
 
 		break;
 
@@ -227,7 +228,7 @@ packet_header_init80211N(uint8_t *packet_header, int type, int port)
 
 		/* Copy data header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_data, sizeof(u8aIeeeHeader_data));
-		pu8 += sizeof(u8aIeeeHeader_data);
+		size = sizeof(u8aIeeeHeader_data);
 
 		break;
 
@@ -242,7 +243,7 @@ packet_header_init80211N(uint8_t *packet_header, int type, int port)
 
 		/* Copy RTS header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_rts, sizeof(u8aIeeeHeader_rts));
-		pu8 += sizeof(u8aIeeeHeader_rts);
+		size = sizeof(u8aIeeeHeader_rts);
 
 		break;
 
@@ -253,12 +254,13 @@ packet_header_init80211N(uint8_t *packet_header, int type, int port)
 	}
 
 	/* The length of the header */
-	return pu8 - packet_header;
+	return size;
 }
 
-static int
+static size_t
 packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 {
+	size_t size = 0U;
 	u8 *pu8 = packet_header;
 
 	int port_encoded = 0;
@@ -314,6 +316,7 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 
 	memcpy(packet_header, u8aRadiotapHeader, sizeof(u8aRadiotapHeader));
 	pu8 += sizeof(u8aRadiotapHeader);
+	size = sizeof(u8aRadiotapHeader);
 
 	switch (type) {
 	case 0:
@@ -327,7 +330,7 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 
 		/* Copy data short header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_data_short, sizeof(u8aIeeeHeader_data_short));
-		pu8 += sizeof(u8aIeeeHeader_data_short);
+		size += sizeof(u8aIeeeHeader_data_short);
 
 		break;
 
@@ -342,7 +345,7 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 
 		/* Copy data header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_data, sizeof(u8aIeeeHeader_data));
-		pu8 += sizeof(u8aIeeeHeader_data);
+		size += sizeof(u8aIeeeHeader_data);
 
 		break;
 
@@ -357,7 +360,7 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 
 		/* Copy RTS header to pu8 */
 		memcpy(pu8, u8aIeeeHeader_rts, sizeof(u8aIeeeHeader_rts));
-		pu8 += sizeof(u8aIeeeHeader_rts);
+		size += sizeof(u8aIeeeHeader_rts);
 
 		break;
 
@@ -372,11 +375,12 @@ packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 	/*
 	 * The length of just the header
 	 */
-	return pu8 - packet_header;
+	return size;
 }
 
 static int
-pb_transmit_packet(wfb_stream_t *stream, int seq_nr, const uint8_t *packet_data, int packet_length)
+pb_transmit_packet(wfb_stream_t *stream, uint32_t seq_nr, const uint8_t *packet_data,
+		   size_t packet_length)
 {
 	/* Add header outside of FEC */
 	wifi_packet_header_t *wph = (wifi_packet_header_t *)(stream->buf + stream->phdr_len);
@@ -386,7 +390,7 @@ pb_transmit_packet(wfb_stream_t *stream, int seq_nr, const uint8_t *packet_data,
 	memcpy(stream->buf + stream->phdr_len + sizeof(wifi_packet_header_t), packet_data,
 	       packet_length);
 
-	int plen = packet_length + stream->phdr_len + sizeof(wifi_packet_header_t);
+	size_t plen = packet_length + stream->phdr_len + sizeof(wifi_packet_header_t);
 
 	size_t i = 0;
 	for (i = 0; i < stream->wfb_tx.count; i++) {
@@ -400,14 +404,14 @@ pb_transmit_packet(wfb_stream_t *stream, int seq_nr, const uint8_t *packet_data,
 }
 
 static void
-pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int packet_length,
-		  int data_packets_per_block, int fec_packets_per_block)
+pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, uint32_t *seq_nr,
+		  size_t packet_length, size_t data_packets_per_block, size_t fec_packets_per_block)
 {
 	uint8_t *data_blocks[MAX_DATA_OR_FEC_PACKETS_PER_BLOCK];
 	uint8_t fec_pool[MAX_DATA_OR_FEC_PACKETS_PER_BLOCK][MAX_USER_PACKET_LENGTH];
 	uint8_t *fec_blocks[MAX_DATA_OR_FEC_PACKETS_PER_BLOCK];
 
-	int i;
+	size_t i;
 	for (i = 0; i < data_packets_per_block; ++i) {
 		data_blocks[i] = pbl[i].data;
 	}
@@ -429,12 +433,12 @@ pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int p
 	uint8_t *pb = stream->buf;
 	pb += stream->phdr_len;
 
-	int di = 0;
-	int fi = 0;
-	int seq_nr_tmp = *seq_nr;
+	size_t di = 0U;
+	size_t fi = 0U;
+	size_t seq_nr_tmp = *seq_nr;
 	int counterfec = 0;
 
-	long long prev_time = svc_get_monotime();
+	uint64_t prev_time = svc_get_monotime();
 
 	/*
 	 * Send data and FEC packets interleaved

@@ -22,7 +22,7 @@ typedef struct {
 } wifi_adapter_rx_status_t;
 
 typedef struct {
-	time_t last_update;
+	uint64_t last_update;
 	uint32_t received_block_cnt;
 	uint32_t damaged_block_cnt;
 	uint32_t lost_packet_cnt;
@@ -36,7 +36,7 @@ typedef struct {
 } wifibroadcast_rx_status_t;
 
 typedef struct {
-	time_t last_update;
+	uint64_t last_update;
 	uint32_t injected_block_cnt;
 	uint32_t skipped_fec_cnt;
 	uint32_t injection_fail_cnt;
@@ -44,7 +44,7 @@ typedef struct {
 } wifibroadcast_tx_status_t;
 
 typedef struct {
-	time_t last_update;
+	uint64_t last_update;
 	uint32_t received_block_cnt;
 	uint32_t damaged_block_cnt;
 	uint32_t lost_packet_cnt;
@@ -57,7 +57,7 @@ typedef struct {
 } wifibroadcast_rx_status_t_rc;
 
 typedef struct {
-	time_t last_update;
+	uint64_t last_update;
 	uint8_t cpuload;
 	uint8_t temp;
 	uint32_t injected_block_cnt;

@@ -86,7 +86,7 @@ rc_main(void)
 				for (g = 0; g < 2; g++) {
 					size_t bit;
 					for (bit = 0; bit < 16; bit++) {
-						if (r.r->data[g] & (1U << bit)) {
+						if ((uint16_t)r.r->data[g] & (1U << bit)) {
 							rc_data.btn[(16 * g) + bit] = true;
 						} else {
 							rc_data.btn[(16 * g) + bit] = false;

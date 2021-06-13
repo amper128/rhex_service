@@ -128,10 +128,10 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 	// PENUMBRA_RADIOTAP_DATA prd;
 	uint8_t payloadBuffer[300];
 	uint8_t *pu8Payload = payloadBuffer;
-	int bytes;
+	ssize_t bytes;
 	int n;
 	int retval;
-	int u16HeaderLen;
+	size_t u16HeaderLen;
 
 	// receive
 	retval = pcap_next_ex(interface->ppcap, &ppcapPacketHeader, (const u_char **)&pu8Payload);
@@ -152,7 +152,7 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 
 	// fetch radiotap header length from radiotap header (seems to be 36 for Atheros and 18 for
 	// Ralink)
-	u16HeaderLen = (pu8Payload[2] + (pu8Payload[3] << 8));
+	u16HeaderLen = (size_t)(pu8Payload[2] + (pu8Payload[3] << 8));
 	//  fprintf(stderr, "u16headerlen: %d\n", u16HeaderLen);
 
 	pu8Payload += u16HeaderLen;
@@ -185,7 +185,7 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 		exit(1);
 	}
 
-	bytes = ppcapPacketHeader->len - (u16HeaderLen + interface->n80211HeaderLength);
+	bytes = (ssize_t)(ppcapPacketHeader->len - (u16HeaderLen + interface->n80211HeaderLength));
 	// log_dbg(stderr, "bytes: %d", bytes);
 	if (bytes < 0) {
 		exit(1);
@@ -246,7 +246,7 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 	rx_data->bytes = bytes;
 
 	pu8Payload += u16HeaderLen + interface->n80211HeaderLength;
-	memcpy(rx_data->data, pu8Payload, bytes);
+	memcpy(rx_data->data, pu8Payload, (size_t)bytes);
 
 	result = 1;
 

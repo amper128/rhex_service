@@ -17,7 +17,7 @@
 typedef struct {
 	pcap_t *ppcap;
 	int selectable_fd;
-	int n80211HeaderLength;
+	size_t n80211HeaderLength;
 } monitor_interface_t;
 
 typedef struct {
