@@ -212,34 +212,12 @@ rssi_rx_main(void)
 	shm_map_write(&rx_status_sysair_shm, &rx_status_sysair, sizeof(rx_status_sysair));
 
 	while (svc_cycle()) {
-		struct timeval to;
-		to.tv_sec = 0;
-		to.tv_usec = 1e5; // 100ms timeout
-		fd_set readset;
-		FD_ZERO(&readset);
-		int nfds = 0;
+		wfb_rx_packet_t rx_data = {
+		    0,
+		};
 
-		for (i = 0; i < rssi_rx.count; i++) {
-			FD_SET(rssi_rx.iface[i].selectable_fd, &readset);
-			if (rssi_rx.iface[i].selectable_fd > nfds) {
-				nfds = rssi_rx.iface[i].selectable_fd;
-			}
-		}
-
-		int n = select(nfds + 1, &readset, NULL, NULL, &to);
-
-		if (n > 0) {
-			for (i = 0; i < rssi_rx.count; i++) {
-				if (FD_ISSET(rssi_rx.iface[i].selectable_fd, &readset)) {
-					wfb_rx_packet_t rx_data = {
-					    0,
-					};
-
-					if (wfb_rx_packet(&rssi_rx.iface[i], &rx_data)) {
-						result = process_packet(&rx_data);
-					}
-				}
-			}
+		if (wfb_rx_packet(&rssi_rx, &rx_data) > 0) {
+			result = process_packet(&rx_data);
 		}
 	}
 

@@ -118,7 +118,7 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 }
 
 int
-wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
+wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 {
 	int result = 0;
 
@@ -249,6 +249,41 @@ wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data)
 	memcpy(rx_data->data, pu8Payload, bytes);
 
 	result = 1;
+
+	return result;
+}
+
+int
+wfb_rx_packet(wfb_rx_t *wfb_rx, wfb_rx_packet_t *rx_data)
+{
+	int result = 0;
+
+	struct timeval to;
+	to.tv_sec = 0;
+	to.tv_usec = 1e5; // 100ms timeout
+	fd_set readset;
+	FD_ZERO(&readset);
+	int nfds = 0;
+
+	size_t i;
+	for (i = 0; i < wfb_rx->count; i++) {
+		FD_SET(wfb_rx->iface[i].selectable_fd, &readset);
+		if (wfb_rx->iface[i].selectable_fd > nfds) {
+			nfds = wfb_rx->iface[i].selectable_fd;
+		}
+	}
+
+	result = select(nfds + 1, &readset, NULL, NULL, &to);
+
+	if (result > 0) {
+		for (i = 0; i < wfb_rx->count; i++) {
+			if (FD_ISSET(wfb_rx->iface[i].selectable_fd, &readset)) {
+				result = wfb_rx_packet_interface(&wfb_rx->iface[i], rx_data);
+				rx_data->adapter = i;
+				break;
+			}
+		}
+	}
 
 	return result;
 }

@@ -27,6 +27,7 @@ typedef struct {
 } wfb_rx_t;
 
 typedef struct {
+	size_t adapter;
 	int type;  // r/c or telemetry
 	int dbm;   // signal level
 	int bytes; // data length
@@ -35,4 +36,6 @@ typedef struct {
 
 int wfb_rx_init(wfb_rx_t *wfb_rx, int port);
 
-int wfb_rx_packet(monitor_interface_t *interface, wfb_rx_packet_t *rx_data);
+int wfb_rx_packet(wfb_rx_t *wfb_rx, wfb_rx_packet_t *rx_data);
+
+int wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data);
