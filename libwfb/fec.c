@@ -951,7 +951,7 @@ printDetail(void)
 }
 #endif
 
-void
+__attribute__((noreturn)) void
 fec_license(void)
 {
 	fprintf(stderr, "   wifibroadcast and its FEC code are free software\n"
