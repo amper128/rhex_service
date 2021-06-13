@@ -26,4 +26,6 @@ void svc_init_context(svc_context_t *ctx);
 
 bool svc_cycle(void);
 
+uint64_t svc_get_monotime(void);
+
 uint64_t svc_get_time(void);

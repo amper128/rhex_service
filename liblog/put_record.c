@@ -11,6 +11,8 @@
 #include <time.h>
 
 #include <log/log.h>
+#include <svc/svc.h>
+
 #include <private/format.h>
 #include <private/print.h>
 #include <private/record.h>
@@ -19,25 +21,12 @@
 
 static char tmp_msg_buff[MSG_BUFF_LEN];
 
-static inline uint64_t
-log_get_time(void)
-{
-	struct timespec ts;
-	uint64_t result = 0ULL;
-
-	if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
-		result = ts.tv_nsec + (ts.tv_sec * TIME_S);
-	}
-
-	return result;
-}
-
 void
 log_put_record(enum log_level level, const char format[], va_list args)
 {
 	log_buffer_t *log = get_log_buffer();
 	if (log) {
-		uint64_t tm = log_get_time();
+		uint64_t tm = svc_get_time();
 		uint32_t len;
 		uint32_t offset = 0;
 

@@ -123,7 +123,7 @@ main_cycle(void)
 	log_print("main", svc_main->log_buffer);
 	size_t i;
 	for (i = 0U; i < svc_count; i++) {
-		svc_list[i].ctx->watchdog = svc_get_time();
+		svc_list[i].ctx->watchdog = svc_get_monotime();
 		log_print(svc_list[i].name, svc_list[i].ctx->log_buffer);
 	}
 }

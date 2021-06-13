@@ -434,7 +434,7 @@ pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int p
 	int seq_nr_tmp = *seq_nr;
 	int counterfec = 0;
 
-	long long prev_time = svc_get_time();
+	long long prev_time = svc_get_monotime();
 
 	/*
 	 * Send data and FEC packets interleaved
@@ -492,7 +492,7 @@ pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int p
 		// td1->tx_status->injected_block_cnt++;
 
 		took_last = took;
-		took = svc_get_time() - prev_time;
+		took = svc_get_monotime() - prev_time;
 
 		// if (took > 50) fprintf(stderr, "write took %lldus\n", took);
 
@@ -526,10 +526,10 @@ pb_transmit_block(wfb_stream_t *stream, packet_buffer_t *pbl, int *seq_nr, int p
 			took = took_last;
 		}
 
-		injection_time_now = svc_get_time();
+		injection_time_now = svc_get_monotime();
 
 		if (injection_time_now - injection_time_prev > 220) {
-			injection_time_prev = svc_get_time();
+			injection_time_prev = svc_get_monotime();
 			// td1->tx_status->injection_time_block = took;
 			took = 0;
 			took_last = 0;

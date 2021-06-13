@@ -58,7 +58,7 @@ svc_create_context(const char svc_name[])
 }
 
 uint64_t
-svc_get_time(void)
+svc_get_monotime(void)
 {
 	struct timespec ts;
 	uint64_t result = 0ULL;
@@ -70,11 +70,24 @@ svc_get_time(void)
 	return result;
 }
 
+uint64_t
+svc_get_time(void)
+{
+	struct timespec ts;
+	uint64_t result = 0ULL;
+
+	if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
+		result = ts.tv_nsec + (ts.tv_sec * TIME_S);
+	}
+
+	return result;
+}
+
 void
 svc_init_context(svc_context_t *ctx)
 {
 	svc_context = ctx;
-	ctx->watchdog = svc_get_time();
+	ctx->watchdog = svc_get_monotime();
 }
 
 static inline bool
@@ -82,7 +95,7 @@ check_watchdog(const svc_context_t *ctx)
 {
 	bool result = true;
 
-	uint64_t tm = svc_get_time();
+	uint64_t tm = svc_get_monotime();
 	uint64_t diff = tm - ctx->watchdog;
 	if (diff < INT64_MAX) {
 		if (diff > TIME_DEADLINE) {
