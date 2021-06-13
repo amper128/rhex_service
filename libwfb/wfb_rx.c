@@ -66,7 +66,7 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 
 	int port_encoded = (port * 2) + 1;
 
-	// open the interface in pcap
+	/* open the interface in pcap */
 	szErrbuf[0] = '\0';
 
 	interface->ppcap = pcap_open_live(name, 400, 0, -1, szErrbuf);
@@ -81,7 +81,7 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 
 	int nLinkEncap = pcap_datalink(interface->ppcap);
 
-	// match (RTS BF) or (DATA, DATA SHORT, RTS (and port))
+	/* match (RTS BF) or (DATA, DATA SHORT, RTS (and port)) */
 	if (nLinkEncap == DLT_IEEE802_11_RADIO) {
 		// if (param_rc_protocol != 99) { // only match on R/C packets if R/C enabled
 		/*sprintf(szProgram, "ether[0x00:4] == 0xb4bf0000 || ((ether[0x00:2] == 0x0801 ||
@@ -180,13 +180,13 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 	}
 	pu8Payload -= u16HeaderLen;
 
-	//  fprintf(stderr, "ppcapPacketHeader->len: %d\n", ppcapPacketHeader->len);
+	// log_dbg("ppcapPacketHeader->len: %d", ppcapPacketHeader->len);
 	if (ppcapPacketHeader->len < (bpf_u_int32)(u16HeaderLen + interface->n80211HeaderLength)) {
 		exit(1);
 	}
 
 	bytes = ppcapPacketHeader->len - (u16HeaderLen + interface->n80211HeaderLength);
-	// fprintf(stderr, "bytes: %d\n", bytes);
+	// log_dbg(stderr, "bytes: %d", bytes);
 	if (bytes < 0) {
 		exit(1);
 	}
@@ -205,23 +205,23 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 			break;
 		case IEEE80211_RADIOTAP_ANTENNA:
 			// ant[adapter_no] = (int8_t) (*rti.this_arg);
-			// fprintf(stderr, "Ant: %d   ", ant[adapter_no]);
+			// log_dbg("Ant: %d", ant[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
 			// db[adapter_no] = (int8_t) (*rti.this_arg);
-			// fprintf(stderr, "DB: %d   ", db[adapter_no]);
+			// log_dbg("DB: %d", db[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DBM_ANTNOISE:
 			// dbm_noise[adapter_no] = (int8_t) (*rti.this_arg);
-			// fprintf(stderr, "DBM Noise: %d   ", dbm_noise[adapter_no]);
+			// log_dbg("DBM Noise: %d", dbm_noise[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_LOCK_QUALITY:
 			// quality[adapter_no] = (int16_t) (*rti.this_arg);
-			// fprintf(stderr, "Quality: %d   ", quality[adapter_no]);
+			// log_dbg("Quality: %d", quality[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_TSFT:
 			// tsft[adapter_no] = (int64_t) (*rti.this_arg);
-			// fprintf(stderr, "TSFT: %d   ", tsft[adapter_no]);
+			// log_dbg("TSFT: %d", tsft[adapter_no]);
 			break;
 		case IEEE80211_RADIOTAP_DBM_ANTSIGNAL: {
 			int8_t signal_dbm = (int8_t)(*rti.this_arg);

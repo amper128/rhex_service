@@ -71,19 +71,19 @@ process_packet(wfb_rx_packet_t *rx_data)
 {
 	struct rssi_data_t *payloaddata = (struct rssi_data_t *)rx_data->data;
 
-	log_dbg("signal:%d", payloaddata->signal);
-	log_dbg("lostpackets:%d\n", payloaddata->lostpackets);
-	log_dbg("signal_rc:%d\n", payloaddata->signal_rc);
-	log_dbg("lostpackets_rc:%d\n", payloaddata->lostpackets_rc);
-	log_dbg("cpuload:%d\n", payloaddata->cpuload);
-	log_dbg("temp:%d\n", payloaddata->temp);
-	log_dbg("injected_blocl_cnt:%d\n", payloaddata->injected_block_cnt);
+	log_dbg("signal: %d", payloaddata->signal);
+	log_dbg("lostpackets: %d", payloaddata->lostpackets);
+	log_dbg("signal_rc: %d", payloaddata->signal_rc);
+	log_dbg("lostpackets_rc: %d", payloaddata->lostpackets_rc);
+	log_dbg("cpuload: %d", payloaddata->cpuload);
+	log_dbg("temp: %d", payloaddata->temp);
+	log_dbg("injected_blocl_cnt: %d", payloaddata->injected_block_cnt);
 
-	log_dbg("bitrate_kbit:%d\n", payloaddata->bitrate_kbit);
-	log_dbg("bitrate_measured_kbit:%d\n", payloaddata->bitrate_measured_kbit);
+	log_dbg("bitrate_kbit: %d", payloaddata->bitrate_kbit);
+	log_dbg("bitrate_measured_kbit: %d", payloaddata->bitrate_measured_kbit);
 
-	log_dbg("cts:%d\n", payloaddata->cts);
-	log_dbg("undervolt:%d\n", payloaddata->undervolt);
+	log_dbg("cts: %d", payloaddata->cts);
+	log_dbg("undervolt: %d", payloaddata->undervolt);
 
 	rx_status_uplink.adapter[0].current_signal_dbm = payloaddata->signal;
 	rx_status_uplink.lost_packet_cnt = payloaddata->lostpackets;
