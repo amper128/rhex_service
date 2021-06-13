@@ -24,7 +24,7 @@ static int nl_socket = -1;
 static uint32_t nl_seq_id = 0U;
 
 #define BUF_SIZE (8192)
-static uint8_t buf[BUF_SIZE];
+static uint8_t local_buf[BUF_SIZE];
 
 static int
 init_netlink()
@@ -192,14 +192,14 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 
 		while (result >= 0) {
 			int msg_len;
-			msg_len = netlink_recv(buf, seq_id, false);
+			msg_len = netlink_recv(local_buf, seq_id, false);
 			if (msg_len < 0) {
 				result = -1;
 				break;
 			}
 
 			struct nlmsghdr *nlmsg_ptr;
-			nlmsg_ptr = (struct nlmsghdr *)buf;
+			nlmsg_ptr = (struct nlmsghdr *)local_buf;
 			while (NLMSG_OK(nlmsg_ptr, msg_len)) {
 				if (nlmsg_ptr->nlmsg_type == NLMSG_DONE) {
 					break;
