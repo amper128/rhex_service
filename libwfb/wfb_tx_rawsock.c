@@ -256,7 +256,7 @@ packet_header_init80211N(uint8_t *packet_header, int type, int port)
 	return pu8 - packet_header;
 }
 
-int
+static int
 packet_header_init(uint8_t *packet_header, int type, int rate, int port)
 {
 	u8 *pu8 = packet_header;

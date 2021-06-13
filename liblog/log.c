@@ -10,7 +10,7 @@
 #include <private/record.h>
 
 void
-log_dbg(char *format, ...)
+log_dbg(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -19,7 +19,7 @@ log_dbg(char *format, ...)
 }
 
 void
-log_inf(char *format, ...)
+log_inf(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -28,7 +28,7 @@ log_inf(char *format, ...)
 }
 
 void
-log_warn(char *format, ...)
+log_warn(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -37,7 +37,7 @@ log_warn(char *format, ...)
 }
 
 void
-log_err(char *format, ...)
+log_err(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -46,7 +46,7 @@ log_err(char *format, ...)
 }
 
 void
-log_exc(char *format, ...)
+log_exc(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);

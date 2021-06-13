@@ -255,18 +255,6 @@ wfb_tx_send_raw(wfb_tx_t *wfb_tx, const uint8_t data[], uint16_t len)
 	wfb_write(wfb_tx, 0U, data, len, false);
 }
 
-uint64_t
-current_timestamp()
-{
-	/* get current time */
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	/* caculate milliseconds */
-	uint64_t milliseconds = (tv.tv_sec * 1000ULL) + (tv.tv_usec / 1000);
-
-	return milliseconds;
-}
-
 int
 wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts)
 {

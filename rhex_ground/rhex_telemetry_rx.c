@@ -10,6 +10,8 @@
 #include <wfb/wfb_rx.h>
 #include <wfb/wfb_status.h>
 
+#include <private/rhex_telemetry_rx.h>
+
 typedef struct {
 	uint32_t seq;
 	uint16_t len;

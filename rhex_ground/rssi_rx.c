@@ -17,6 +17,8 @@
 #include <wfb/wfb_rx.h>
 #include <wfb/wfb_status.h>
 
+#include <private/rssi_rx.h>
+
 int dbm[6];
 int ant[6];
 int db[6];
@@ -52,18 +54,6 @@ rssi_rx_init(void)
 	} while (false);
 
 	return result;
-}
-
-long long
-current_timestamp()
-{
-	struct timeval te;
-
-	gettimeofday(&te, NULL);
-
-	long long milliseconds = te.tv_sec * 1000LL + te.tv_usec / 1000;
-
-	return milliseconds;
 }
 
 static uint8_t
@@ -114,7 +104,7 @@ process_packet(wfb_rx_packet_t *rx_data)
 	return (0);
 }
 
-void
+static void
 status_memory_init(wifibroadcast_rx_status_t *s)
 {
 	s->received_block_cnt = 0;
@@ -137,7 +127,7 @@ status_memory_init(wifibroadcast_rx_status_t *s)
 	}
 }
 
-void
+static void
 status_memory_init_sysair(wifibroadcast_rx_status_t_sysair *s)
 {
 	s->cpuload = 0;

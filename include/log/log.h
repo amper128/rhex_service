@@ -42,12 +42,12 @@ log_buffer_t *log_create(const char name[]);
 
 void log_init(void);
 
-void log_dbg(char *format, ...);
+void log_dbg(const char *format, ...);
 
-void log_inf(char *format, ...);
+void log_inf(const char *format, ...);
 
-void log_warn(char *format, ...);
+void log_warn(const char *format, ...);
 
-void log_err(char *format, ...);
+void log_err(const char *format, ...);
 
-void log_exc(char *format, ...);
+void log_exc(const char *format, ...);

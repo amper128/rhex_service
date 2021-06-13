@@ -76,44 +76,51 @@ camera_start(camera_desc_t *cam_desc)
 			close(cam_desc->stderr_fds[0]);
 
 			/* run program */
-			static char *const argv[] = {/* progname */
-						     "/usr/bin/raspivid",
-						     /* width */
-						     "-w", "1920",
-						     /* height */
-						     "-h", "1080",
-						     /* fps */
-						     "-fps", "30",
-						     /* bitrate */
-						     "-b", "6000000",
-						     /* keyframe rate */
-						     "-g", "10",
-						     /* start immediate */
-						     "-t", "0",
-						     /* codec */
-						     "-cd", "H264",
-						     /* no preview */
-						     "-n",
-						     /* flush */
-						     "-fl",
-						     /* inline headers */
-						     "-ih",
-						     /* h.264 profile */
-						     "-pf", "high",
-						     /* intra refresh */
-						     "-if", "both",
-						     /* exposure */
-						     "-ex", "sports",
-						     /* metering mode */
-						     "-mm", "average",
-						     /* AWB mode */
-						     "-awb", "horizon",
-						     /* output to stdout */
-						     "-o", "-",
-						     /* end */
-						     NULL};
+			static const char *args_list[] = {/* progname */
+							  "/usr/bin/raspivid",
+							  /* width */
+							  "-w", "1920",
+							  /* height */
+							  "-h", "1080",
+							  /* fps */
+							  "-fps", "30",
+							  /* bitrate */
+							  "-b", "6000000",
+							  /* keyframe rate */
+							  "-g", "10",
+							  /* start immediate */
+							  "-t", "0",
+							  /* codec */
+							  "-cd", "H264",
+							  /* no preview */
+							  "-n",
+							  /* flush */
+							  "-fl",
+							  /* inline headers */
+							  "-ih",
+							  /* h.264 profile */
+							  "-pf", "high",
+							  /* intra refresh */
+							  "-if", "both",
+							  /* exposure */
+							  "-ex", "sports",
+							  /* metering mode */
+							  "-mm", "average",
+							  /* AWB mode */
+							  "-awb", "horizon",
+							  /* output to stdout */
+							  "-o", "-",
+							  /* end */
+							  NULL};
 
-			execv(argv[0], argv);
+			/* discard const qualifier workaround */
+			union {
+				const char **cargp;
+				char **const argp;
+			} argv;
+			argv.cargp = args_list;
+
+			execv(argv.argp[0], argv.argp);
 
 			log_err("cannot execv: %i", errno);
 			_exit(-1);
