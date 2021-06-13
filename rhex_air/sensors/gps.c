@@ -236,6 +236,16 @@ parse_line(const char *line)
 		break;
 	}
 
+	case MINMEA_INVALID:
+	case MINMEA_UNKNOWN:
+	case MINMEA_SENTENCE_GSA:
+	case MINMEA_SENTENCE_GLL:
+	case MINMEA_SENTENCE_GST:
+	case MINMEA_SENTENCE_VTG:
+	case MINMEA_SENTENCE_ZDA:
+		/* do nothing */
+		break;
+
 	default:
 		// log_warn("unknown GP '%s'", line);
 		break;

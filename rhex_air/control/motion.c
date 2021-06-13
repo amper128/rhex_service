@@ -377,6 +377,10 @@ parse_msg(const struct can_packet_t *msg)
 
 			break;
 		}
+
+		default:
+			/* do nothing */
+			break;
 		}
 	}
 }
@@ -447,6 +451,10 @@ do_motion()
 		if (all_drv_ready()) {
 			make_step(rc_data->speed, rc_data->steering);
 		}
+		break;
+
+	default:
+		/* do nothing */
 		break;
 	}
 }
