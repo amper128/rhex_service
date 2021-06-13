@@ -23,6 +23,47 @@ set(GENERIC_C_FLAGS
 	-std=c${CMAKE_C_STANDARD}
 	-Wall
 	-Wextra
+	-Wformat
+	-Wformat-security
+	-Wformat-y2k
+	-Wignored-qualifiers
+	-Wimport
+	-Winit-self
+	-Winvalid-pch
+	-Wmissing-braces
+	-Wmissing-declarations
+	-Wmissing-field-initializers
+	-Wmissing-noreturn
+	-Wno-attributes
+	-Wno-inline
+	-Wno-long-long
+	-Wno-missing-field-initializers
+	-Wno-redundant-decls
+	-Wno-variadic-macros
+	-Wparentheses
+	-Wpointer-arith
+	-Wreturn-type
+	-Wsequence-point
+	-Wshadow
+	-Wsign-compare
+	-Wsign-conversion
+	-Wswitch
+	-Wswitch-default
+	-Wswitch-enum
+	-Wtrigraphs
+	-Wtype-limits
+	-Wundef
+	-Wuninitialized
+	-Wunknown-pragmas
+	-Wunreachable-code
+	-Wunused
+	-Wunused-function
+	-Wunused-label
+	-Wunused-parameter
+	-Wunused-value
+	-Wunused-variable
+	-Wvolatile-register-var
+	-Wwrite-strings
 	-Werror
 	)
 
