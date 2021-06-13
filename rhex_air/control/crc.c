@@ -6,7 +6,7 @@
  * @brief Функции подсчета CRC
  */
 
-#include <crc.h>
+#include <private/crc.h>
 
 static uint16_t
 vt_crc16worker(uint16_t icrc, uint8_t r0)

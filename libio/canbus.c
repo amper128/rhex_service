@@ -12,9 +12,9 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
-#include <can_proto.h>
 #include <io/canbus.h>
 #include <log/log.h>
+#include <proto/can_proto.h>
 #include <svc/netlink.h>
 #include <svc/platform.h>
 

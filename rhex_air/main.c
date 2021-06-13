@@ -15,13 +15,13 @@
 #include <svc/timerfd.h>
 #include <wfb/wfb_status.h>
 
-#include <camera.h>
-#include <gps.h>
-#include <motion.h>
-#include <rhex_rc.h>
-#include <rhex_telemetry.h>
-#include <rssi_tx.h>
-#include <sensors.h>
+#include <private/camera.h>
+#include <private/gps.h>
+#include <private/motion.h>
+#include <private/rhex_rc.h>
+#include <private/rhex_telemetry.h>
+#include <private/rssi_tx.h>
+#include <private/sensors.h>
 
 #define SERVICES_MAX (32U)
 

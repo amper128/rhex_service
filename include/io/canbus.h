@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <can_proto.h>
+#include <proto/can_proto.h>
 
 struct can_packet_t {
 	can_msg_t msg;

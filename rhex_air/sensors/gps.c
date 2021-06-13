@@ -14,8 +14,8 @@
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 
-#include <gps.h>
-#include <minmea.h>
+#include <private/gps.h>
+#include <private/minmea.h>
 
 static gps_status_t tmp_gps_status;
 

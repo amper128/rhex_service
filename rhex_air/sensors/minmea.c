@@ -6,13 +6,13 @@
  * published by Sam Hocevar. See the COPYING file for more details.
  */
 
-#include "minmea.h"
-
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include <private/minmea.h>
 
 #define boolstr(s) ((s) ? "true" : "false")
 

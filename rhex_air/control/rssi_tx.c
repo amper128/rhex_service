@@ -10,11 +10,12 @@
 #include <string.h>
 
 #include <proto/telemetry.h>
-#include <rssi_tx.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_status.h>
 #include <wfb/wfb_tx.h>
+
+#include <private/rssi_tx.h>
 
 typedef struct {
 	wifibroadcast_rx_status_t *rx_status;

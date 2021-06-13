@@ -8,14 +8,15 @@
 
 #include <string.h>
 
-#include <crc.h>
-#include <gps.h>
 #include <log/log.h>
-#include <rhex_telemetry.h>
-#include <sensors.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_tx.h>
+
+#include <private/crc.h>
+#include <private/gps.h>
+#include <private/rhex_telemetry.h>
+#include <private/sensors.h>
 
 static shm_t gps_shm;
 static shm_t sensors_shm;

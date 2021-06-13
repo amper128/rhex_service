@@ -12,7 +12,7 @@
 #include <wfb/wfb_rx.h>
 #include <wfb/wfb_status.h>
 
-#include <rhex_rc.h>
+#include <private/rhex_rc.h>
 
 static shm_t rc_shm;
 static shm_t rc_status_shm;

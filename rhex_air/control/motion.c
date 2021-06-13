@@ -14,8 +14,8 @@
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 
-#include <motion.h>
-#include <rhex_rc.h>
+#include <private/motion.h>
+#include <private/rhex_rc.h>
 
 static shm_t rc_shm;
 

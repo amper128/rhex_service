@@ -13,8 +13,8 @@
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 
-#include <ina226.h>
-#include <sensors.h>
+#include <private/ina226.h>
+#include <private/sensors.h>
 
 static shm_t sensors_shm;
 

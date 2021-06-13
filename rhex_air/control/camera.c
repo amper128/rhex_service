@@ -6,14 +6,16 @@
  * @brief Передача видеопотока
  */
 
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 #include <log/log.h>
 #include <svc/platform.h>
 #include <svc/svc.h>
 #include <wfb/wfb_tx_rawsock.h>
 
-#include <stdio.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <private/camera.h>
 
 typedef struct {
 	int stdout_fds[2];

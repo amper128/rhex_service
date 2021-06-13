@@ -7,7 +7,7 @@
  */
 
 #include <io/i2c.h>
-#include <ina226.h>
+#include <private/ina226.h>
 
 #include <byteswap.h>
 
