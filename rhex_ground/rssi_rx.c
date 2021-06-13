@@ -66,7 +66,7 @@ current_timestamp()
 	return milliseconds;
 }
 
-uint8_t
+static uint8_t
 process_packet(wfb_rx_packet_t *rx_data)
 {
 	struct rssi_data_t *payloaddata = (struct rssi_data_t *)rx_data->data;
@@ -138,24 +138,6 @@ status_memory_init(wifibroadcast_rx_status_t *s)
 }
 
 void
-status_memory_init_rc(wifibroadcast_rx_status_t_rc *s)
-{
-	s->received_block_cnt = 0;
-	s->damaged_block_cnt = 0;
-	s->received_packet_cnt = 0;
-	s->lost_packet_cnt = 0;
-	s->tx_restart_cnt = 0;
-	s->wifi_adapter_cnt = 0;
-
-	size_t i;
-	for (i = 0; i < NL_MAX_IFACES; ++i) {
-		s->adapter[i].received_packet_cnt = 0;
-		s->adapter[i].wrong_crc_cnt = 0;
-		s->adapter[i].current_signal_dbm = -126;
-	}
-}
-
-void
 status_memory_init_sysair(wifibroadcast_rx_status_t_sysair *s)
 {
 	s->cpuload = 0;
@@ -193,7 +175,6 @@ rssi_rx_main(void)
 
 	status_memory_init(&rx_status);
 	status_memory_init(&rx_status_uplink);
-	status_memory_init_rc(&rx_status_rc);
 	status_memory_init_sysair(&rx_status_sysair);
 
 	rx_status.wifi_adapter_cnt = rssi_rx.count;
