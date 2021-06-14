@@ -24,6 +24,7 @@
 #include <svc/timerfd.h>
 #include <wfb/wfb_status.h>
 
+#include <private/rhex_telemetry_rx.h>
 #include <private/rssi_rx.h>
 
 #define SERVICES_MAX (32U)
@@ -102,7 +103,9 @@ start_microservices(void)
 	static const struct {
 		svc_desc_t svc[SERVICES_MAX];
 		size_t count;
-	} svc_start_list = {{{"rssi", rssi_rx_init, rssi_rx_main, 100ULL * TIME_MS}}, 1U};
+	} svc_start_list = {{{"rssi", rssi_rx_init, rssi_rx_main, 100ULL * TIME_MS},
+			     {"telemetry", telemetry_rx_init, telemetry_rx_main, 10ULL * TIME_MS}},
+			    1U};
 
 	size_t i;
 

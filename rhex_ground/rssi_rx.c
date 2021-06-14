@@ -19,18 +19,6 @@
 
 #include <private/rssi_rx.h>
 
-int dbm[6];
-int ant[6];
-int db[6];
-int dbm_noise[6];
-int dbm_last[6];
-int quality[6];
-
-long long tsft[6];
-
-long long dbm_ts_prev[6];
-long long dbm_ts_now[6];
-
 static wifibroadcast_rx_status_t rx_status;
 static wifibroadcast_rx_status_t rx_status_uplink;
 static wifibroadcast_rx_status_t_rc rx_status_rc;
