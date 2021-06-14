@@ -164,13 +164,13 @@ rssi_tx_main(void)
 			break;
 		}
 
-		if (shm_map_open("shm_rx_status", &rx_status_shm) < 0) {
+		if (!shm_map_open("shm_rx_status", &rx_status_shm)) {
 			break;
 		}
-		if (shm_map_open("shm_rx_status_rc", &rx_status_rc_shm) < 0) {
+		if (!shm_map_open("shm_rx_status_rc", &rx_status_rc_shm)) {
 			break;
 		}
-		if (shm_map_open("shm_tx_status", &tx_status_shm) < 0) {
+		if (!shm_map_open("shm_tx_status", &tx_status_shm)) {
 			break;
 		}
 

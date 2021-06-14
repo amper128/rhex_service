@@ -47,10 +47,10 @@ calc_shm_size(size_t copy_size, size_t copies)
 	return (align_size(copy_size) * copies) + sizeof(shm_header_t);
 }
 
-int32_t
+bool
 shm_map_init(const char name[], size_t size)
 {
-	int32_t result = 0;
+	bool result = false;
 
 	do {
 		char shm_name[256];
@@ -58,7 +58,6 @@ shm_map_init(const char name[], size_t size)
 		int fd = shm_open(shm_name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if (fd < 0) {
 			log_err("shm_open() \"%s\" error", name);
-			result = -1;
 			break;
 		}
 
@@ -66,14 +65,13 @@ shm_map_init(const char name[], size_t size)
 
 		if (ftruncate(fd, (off_t)map_size) == -1) {
 			log_err("cannot ftruncate()");
-			result = -1;
 			break;
 		}
 
 		void *map = mmap(NULL, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		close(fd);
 		if (map == MAP_FAILED) {
-			result = -1;
+			log_err("cannot mmap()");
 			break;
 		}
 
@@ -90,15 +88,17 @@ shm_map_init(const char name[], size_t size)
 
 			header->slot[slot].offset = (align_size(size) * slot);
 		}
+
+		result = true;
 	} while (false);
 
 	return result;
 }
 
-int32_t
+bool
 shm_map_open(const char name[], shm_t *shm)
 {
-	int32_t result = 0;
+	bool result = false;
 
 	do {
 		char shm_name[256];
@@ -106,15 +106,14 @@ shm_map_open(const char name[], shm_t *shm)
 		int fd = shm_open(shm_name, O_RDWR, S_IRUSR | S_IWUSR);
 		if (fd < 0) {
 			log_err("shm_open() \"%s\" error", name);
-			result = -1;
 			break;
 		}
 
 		void *map =
 		    mmap(NULL, sizeof(shm_header_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		if (map == MAP_FAILED) {
+			log_err("cannot mmap()");
 			close(fd);
-			result = -1;
 			break;
 		}
 
@@ -124,7 +123,6 @@ shm_map_open(const char name[], shm_t *shm)
 		if (header.magic != SHM_MAGIC) {
 			close(fd);
 			log_err("invalid shm_magic");
-			result = -1;
 			break;
 		}
 
@@ -134,13 +132,15 @@ shm_map_open(const char name[], shm_t *shm)
 			   MAP_SHARED, fd, 0);
 		close(fd);
 		if (map == MAP_FAILED) {
-			result = -1;
+			log_err("cannot mmap()");
 			break;
 		}
 
 		shm->guard = SHM_GUARD;
 		shm->map = map;
 		shm->size = header.size;
+
+		result = true;
 	} while (false);
 
 	return result;

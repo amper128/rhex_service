@@ -16,9 +16,9 @@ typedef struct {
 	size_t size;
 } shm_t;
 
-int32_t shm_map_init(const char name[], size_t size);
+bool shm_map_init(const char name[], size_t size);
 
-int32_t shm_map_open(const char name[], shm_t *shm);
+bool shm_map_open(const char name[], shm_t *shm);
 
 int32_t shm_map_read(shm_t *shm, void **data);
 
