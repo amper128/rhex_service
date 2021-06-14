@@ -24,28 +24,11 @@ typedef struct {
 static buffer_t buffer[BUF_SZ];
 static size_t buf_pos = BUF_SZ - 2U;
 
-// uint32_t seqbuffer[5];
-
-uint32_t seqno_telemetry = 0;
-uint8_t seqno_rc = 0;
-uint32_t seqnolast_telemetry = 0;
-uint8_t seqnolast_rc = 0;
-
-int seqnumplayed = 0;
-
-int telemetry_received_yet = 0;
-int rc_received_yet = 0;
-
-int port_encoded;
-
-wifibroadcast_rx_status_t_rc *rx_status_telemetry = NULL;
+static wifibroadcast_rx_status_t_rc rx_status_telemetry;
 
 static shm_t rx_status_telemetry_shm;
 
-uint16_t sumdcrc = 0;
-uint16_t ibuschecksum = 0;
-
-uint32_t lastseq;
+static uint32_t lastseq;
 
 /*
  * Telemetry frame header consisting of seqnr and payload length
@@ -57,13 +40,13 @@ struct header_s {
 };
 
 static void
-process_packet(wfb_rx_packet_t *rx_data)
+process_packet(wfb_rx_packet_t *rx_data, int sock, struct sockaddr_in *server)
 {
 	do {
 		/* write statistics */
-		rx_status_telemetry->adapter[rx_data->adapter].current_signal_dbm = rx_data->dbm;
-		rx_status_telemetry->adapter[rx_data->adapter].received_packet_cnt++;
-		rx_status_telemetry->last_update = svc_get_monotime();
+		rx_status_telemetry.adapter[rx_data->adapter].current_signal_dbm = rx_data->dbm;
+		rx_status_telemetry.adapter[rx_data->adapter].received_packet_cnt++;
+		rx_status_telemetry.last_update = svc_get_monotime();
 		shm_map_write(&rx_status_telemetry_shm, &rx_status_telemetry,
 			      sizeof(rx_status_telemetry));
 
@@ -90,6 +73,13 @@ process_packet(wfb_rx_packet_t *rx_data)
 		}
 
 		memcpy(buffer[buf_pos].payload, header->data, header->length);
+
+		/* write telemetry to socket */
+		if (sendto(sock, header->data, header->length, 0, (struct sockaddr *)server,
+			   sizeof(struct sockaddr_in)) < 0) {
+			log_err("cannot send to udp");
+			break;
+		}
 
 		buffer[buf_pos].len = header->length;
 		buffer[buf_pos].seq = header->seqnumber;
@@ -136,7 +126,9 @@ telemetry_rx_init(void)
 			break;
 		}
 
-		status_memory_init_rc(rx_status_telemetry);
+		status_memory_init_rc(&rx_status_telemetry);
+
+		log_dbg("telemetry_rx_init");
 
 		shm_map_write(&rx_status_telemetry_shm, &rx_status_telemetry,
 			      sizeof(rx_status_telemetry));
@@ -170,12 +162,27 @@ telemetry_rx_main(void)
 		return result;
 	}
 
-	rx_status_telemetry->wifi_adapter_cnt = telemetry_rx.count;
+	rx_status_telemetry.wifi_adapter_cnt = telemetry_rx.count;
 
 	log_inf("wifi_adapter_cnt: %u", telemetry_rx.count);
 
+	int s;
+	unsigned short port = htons(5011);
+	struct sockaddr_in server;
+
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		log_err("cannot open socket");
+		return s;
+	}
+
+	/* Set up the server name */
+	server.sin_family = AF_INET;			    /* Internet Domain    */
+	server.sin_port = port;				    /* Server Port        */
+	server.sin_addr.s_addr = inet_addr("192.168.0.30"); /* Server's Address   */
+
 	lastseq = 0;
 
+	log_dbg("starting");
 	while (svc_cycle()) {
 		wfb_rx_packet_t rx_data = {
 		    0,
@@ -189,7 +196,7 @@ telemetry_rx_main(void)
 		}
 
 		if (r > 0) {
-			process_packet(&rx_data);
+			process_packet(&rx_data, s, &server);
 		}
 	}
 
