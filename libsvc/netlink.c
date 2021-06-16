@@ -6,6 +6,7 @@
  * @brief Функции работы с netlink
  */
 
+#include <libnetlink.h>
 #include <linux/if_arp.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
@@ -17,6 +18,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <log/log.h>
 #include <svc/netlink.h>
 #include <svc/platform.h>
 
@@ -160,6 +162,58 @@ netlink_request(struct nlmsghdr *hdr, uint32_t *seq_id)
 	return result;
 }
 
+/* копия функции, чтобы не зависеть от библиотеки netlink */
+static int
+netlink_addattr_l(struct nlmsghdr *hdr, uint32_t maxlen, uint16_t type, const void *attrdata,
+		  uint32_t attrlen)
+{
+	int result = 0;
+
+	uint32_t len = RTA_LENGTH(attrlen);
+	uint32_t msglen = NLMSG_ALIGN(hdr->nlmsg_len);
+	msglen += RTA_ALIGN(len);
+
+	do {
+		if (msglen > maxlen) {
+			log_err("addattr_l ERROR: message exceeded bound of %u", maxlen);
+			result = -1;
+			break;
+		}
+
+		struct rtattr *rta = NLMSG_TAIL(hdr);
+		rta->rta_type = type;
+		rta->rta_len = (uint16_t)len;
+		if (attrlen > 0U) {
+			memcpy(RTA_DATA(rta), attrdata, attrlen);
+		}
+
+		hdr->nlmsg_len = NLMSG_ALIGN(hdr->nlmsg_len);
+		hdr->nlmsg_len += RTA_ALIGN(len);
+	} while (false);
+
+	return result;
+}
+
+static int
+netlink_check_error(struct nlmsghdr *hdr, uint32_t msg_len)
+{
+	int result = 0;
+
+	struct nlmsghdr *nlmsg_ptr = hdr;
+	while (NLMSG_OK(nlmsg_ptr, msg_len)) {
+		if (nlmsg_ptr->nlmsg_type != NLMSG_ERROR) {
+			nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+			continue;
+		}
+
+		struct nlmsgerr *err = NLMSG_DATA(nlmsg_ptr);
+		result = err->error;
+		break;
+	}
+
+	return result;
+}
+
 static int
 nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 {
@@ -273,4 +327,65 @@ int
 nl_get_can_list(if_desc_t if_list[])
 {
 	return nl_link_list(if_list, ARPHRD_CAN);
+}
+
+static int
+nl_link_updown(const if_desc_t *iface, bool up)
+{
+	int result = 0;
+
+	do {
+		struct {
+			struct nlmsghdr hdr;
+			struct ifinfomsg ifi;
+			char ifname[IFNAM_SIZE];
+		} req;
+
+		memset(&req, 0U, sizeof(req));
+
+		req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+		req.hdr.nlmsg_flags = (NLM_F_REQUEST | NLM_F_ACK);
+		req.hdr.nlmsg_type = RTM_SETLINK;
+
+		req.ifi.ifi_change = IFF_UP;
+		if (up) {
+			req.ifi.ifi_flags = IFF_UP;
+		}
+		req.ifi.ifi_family = AF_UNSPEC;
+
+		result = netlink_addattr_l(&req.hdr, sizeof(req), IFLA_IFNAME, iface->ifname,
+					   IFNAM_SIZE);
+		if (result) {
+			break;
+		}
+
+		uint32_t seq_id;
+		result = netlink_request(&req.hdr, &seq_id);
+		if (result < 0) {
+			break;
+		}
+
+		result = netlink_recv(local_buf, seq_id, true);
+		if (result < 0) {
+			break;
+		}
+
+		struct nlmsghdr *nlmsg_ptr;
+		nlmsg_ptr = (struct nlmsghdr *)local_buf;
+		result = netlink_check_error(nlmsg_ptr, (uint32_t)result);
+	} while (false);
+
+	return result;
+}
+
+int
+nl_link_up(const if_desc_t *iface)
+{
+	return nl_link_updown(iface, true);
+}
+
+int
+nl_link_down(const if_desc_t *iface)
+{
+	return nl_link_updown(iface, false);
 }

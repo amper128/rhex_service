@@ -22,3 +22,7 @@ int nl_get_eth_list(if_desc_t if_list[]);
 int nl_get_wifi_list(if_desc_t if_list[]);
 
 int nl_get_can_list(if_desc_t if_list[]);
+
+int nl_link_up(const if_desc_t *iface);
+
+int nl_link_down(const if_desc_t *iface);
