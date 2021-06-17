@@ -7,6 +7,7 @@
  */
 
 #include <libnetlink.h>
+#include <linux/genetlink.h>
 #include <linux/if_arp.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
@@ -32,7 +33,7 @@ static int
 init_netlink()
 {
 	int fd;
-	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
 	if (fd < 0) {
 		return fd;
 	}
@@ -51,6 +52,12 @@ init_netlink()
 	if (b < 0) {
 		return fd;
 	}
+
+	uint32_t opt = BUF_SIZE;
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt));
+	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt));
+	opt = 1U;
+	setsockopt(fd, SOL_NETLINK, NETLINK_EXT_ACK, &opt, sizeof(opt));
 
 	nl_socket = fd;
 
@@ -75,6 +82,8 @@ netlink_recv(uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 		struct sockaddr_nl kernel;
 		memset(&kernel, 0, sizeof(kernel));
 		kernel.nl_family = AF_NETLINK;
+		kernel.nl_pid = (uint32_t)getpid();
+		kernel.nl_groups = UINT32_MAX;
 
 		struct msghdr msg;
 		memset(&msg, 0, sizeof(msg));
@@ -94,6 +103,8 @@ netlink_recv(uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 		nlmsg_ptr = (struct nlmsghdr *)buf;
 
 		if (nlmsg_ptr->nlmsg_type == NLMSG_ERROR) {
+			struct nlmsgerr *err = NLMSG_DATA(nlmsg_ptr);
+			result = -err->error;
 			break;
 		}
 
@@ -388,4 +399,93 @@ int
 nl_link_down(const if_desc_t *iface)
 {
 	return nl_link_updown(iface, false);
+}
+
+int
+nl_get_family(const char family[], uint16_t *family_id)
+{
+	int result = 0;
+
+	do {
+		struct {
+			struct nlmsghdr hdr;
+			struct genlmsghdr msg;
+			struct rtattr attr;
+			char family[GENL_NAMSIZ];
+		} req;
+
+		memset(&req, 0U, sizeof(req));
+
+		req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct genlmsghdr));
+		req.hdr.nlmsg_flags = (NLM_F_REQUEST | NLM_F_ACK);
+		req.hdr.nlmsg_type = GENL_ID_CTRL;
+		req.hdr.nlmsg_pid = (uint32_t)getpid();
+
+		req.msg.cmd = CTRL_CMD_GETFAMILY;
+		req.msg.version = 1U;
+
+		result = netlink_addattr_l(&req.hdr, sizeof(req), CTRL_ATTR_FAMILY_NAME, family,
+					   strlen(family) + 1U);
+		if (result) {
+			break;
+		}
+
+		uint32_t seq_id;
+		result = netlink_request(&req.hdr, &seq_id);
+		if (result < 0) {
+			break;
+		}
+
+		result = netlink_recv(local_buf, seq_id, false);
+		if (result < 0) {
+			break;
+		}
+
+		uint32_t msg_len = (uint32_t)result;
+		result = 0;
+		struct nlmsghdr *nlmsg_ptr;
+		nlmsg_ptr = (struct nlmsghdr *)local_buf;
+		while (NLMSG_OK(nlmsg_ptr, msg_len)) {
+			if (nlmsg_ptr->nlmsg_type == NLMSG_DONE) {
+				break;
+			}
+
+			if (nlmsg_ptr->nlmsg_type != GENL_ID_CTRL) {
+				nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+				continue;
+			}
+
+			struct genlmsghdr *genl_ptr;
+
+			genl_ptr = NLMSG_DATA(nlmsg_ptr);
+
+			if (genl_ptr->cmd != CTRL_CMD_NEWFAMILY) {
+				nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+				continue;
+			}
+
+			struct rtattr *attr_ptr;
+			uint32_t attr_len;
+
+			attr_ptr = IFLA_RTA(genl_ptr);
+			attr_len = nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(struct genlmsghdr));
+
+			while (RTA_OK(attr_ptr, attr_len)) {
+				if (attr_ptr->rta_type == CTRL_ATTR_FAMILY_ID) {
+					uint16_t *id_ptr = RTA_DATA(attr_ptr);
+					*family_id = *id_ptr;
+					break;
+				}
+
+				attr_ptr = RTA_NEXT(attr_ptr, attr_len);
+				attr_len =
+				    nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(struct genlmsghdr));
+			}
+
+			nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+		}
+
+	} while (false);
+
+	return result;
 }
