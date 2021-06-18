@@ -24,52 +24,71 @@
 #include <svc/platform.h>
 
 static int nl_socket = -1;
+static int gennl_socket = -1;
 static uint32_t nl_seq_id = 0U;
 
 #define BUF_SIZE (8192)
 static uint8_t local_buf[BUF_SIZE];
 
 static int
-init_netlink()
+init_netlink(int type)
 {
-	int fd;
-	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-	if (fd < 0) {
-		return fd;
-	}
+	int sock;
 
-	struct sockaddr_nl local;
+	do {
+		sock = socket(AF_NETLINK, SOCK_RAW, type);
+		if (sock < 0) {
+			break;
+		}
 
-	memset(&local, 0, sizeof(local));
+		struct sockaddr_nl local;
 
-	local.nl_family = AF_NETLINK;
-	local.nl_pid = (uint32_t)getpid();
-	local.nl_groups = 0;
+		memset(&local, 0, sizeof(local));
 
-	int b;
+		local.nl_family = AF_NETLINK;
+		local.nl_pid = (uint32_t)getpid();
 
-	b = bind(fd, (struct sockaddr *)&local, sizeof(local));
-	if (b < 0) {
-		return fd;
-	}
+		int b;
 
-	uint32_t opt = BUF_SIZE;
-	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt));
-	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt));
-	opt = 1U;
-	setsockopt(fd, SOL_NETLINK, NETLINK_EXT_ACK, &opt, sizeof(opt));
+		b = bind(sock, (struct sockaddr *)&local, sizeof(local));
+		if (b < 0) {
+			close(sock);
+			sock = 1;
+			break;
+		}
 
-	nl_socket = fd;
+		uint32_t opt = BUF_SIZE;
+		setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt));
+		setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt));
+		opt = 1U;
+		setsockopt(sock, SOL_NETLINK, NETLINK_EXT_ACK, &opt, sizeof(opt));
 
-	return 0;
+		switch (type) {
+		case NETLINK_GENERIC:
+			gennl_socket = sock;
+			break;
+
+		case NETLINK_ROUTE:
+		default:
+			nl_socket = sock;
+			break;
+		}
+	} while (false);
+
+	return sock;
 }
 
 static int
-netlink_recv(uint8_t buf[], uint32_t seq_id, bool wait_confirm)
+netlink_recv(int type, uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 {
 	int result = 0;
 	do {
-		if (nl_socket == -1) {
+		int sock = nl_socket;
+		if (type == NETLINK_GENERIC) {
+			sock = gennl_socket;
+		}
+
+		if (sock == -1) {
 			result = -1;
 			break;
 		}
@@ -93,7 +112,7 @@ netlink_recv(uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 		msg.msg_namelen = sizeof(kernel);
 
 		int msg_len;
-		msg_len = recvmsg(nl_socket, &msg, 0);
+		msg_len = recvmsg(sock, &msg, 0);
 
 		if (msg_len <= 0) {
 			break;
@@ -127,17 +146,23 @@ netlink_recv(uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 }
 
 static int
-netlink_request(struct nlmsghdr *hdr, uint32_t *seq_id)
+netlink_request(int type, struct nlmsghdr *hdr, uint32_t *seq_id)
 {
 	int result = 0;
 
 	do {
-		if (nl_socket == -1) {
-			int r = init_netlink();
+		int sock = nl_socket;
+		if (type == NETLINK_GENERIC) {
+			sock = gennl_socket;
+		}
+
+		if (sock == -1) {
+			int r = init_netlink(type);
 			if (r < 0) {
 				result = r;
 				break;
 			}
+			sock = r;
 		}
 
 		struct sockaddr_nl kernel;
@@ -165,7 +190,7 @@ netlink_request(struct nlmsghdr *hdr, uint32_t *seq_id)
 		msg.msg_name = &kernel;
 		msg.msg_namelen = sizeof(kernel);
 
-		if (sendmsg(nl_socket, (struct msghdr *)&msg, 0) < 0) {
+		if (sendmsg(sock, (struct msghdr *)&msg, 0) < 0) {
 			result = -1;
 		}
 	} while (false);
@@ -248,7 +273,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 
 		uint32_t seq_id;
 
-		if (netlink_request(&req.hdr, &seq_id) < 0) {
+		if (netlink_request(NETLINK_ROUTE, &req.hdr, &seq_id) < 0) {
 			result = -1;
 			break;
 		}
@@ -256,7 +281,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 		size_t if_count = 0U;
 
 		while (result >= 0) {
-			int r = netlink_recv(local_buf, seq_id, false);
+			int r = netlink_recv(NETLINK_ROUTE, local_buf, seq_id, false);
 			if (r < 0) {
 				result = -1;
 				break;
@@ -371,12 +396,12 @@ nl_link_updown(const if_desc_t *iface, bool up)
 		}
 
 		uint32_t seq_id;
-		result = netlink_request(&req.hdr, &seq_id);
+		result = netlink_request(NETLINK_ROUTE, &req.hdr, &seq_id);
 		if (result < 0) {
 			break;
 		}
 
-		result = netlink_recv(local_buf, seq_id, true);
+		result = netlink_recv(NETLINK_ROUTE, local_buf, seq_id, true);
 		if (result < 0) {
 			break;
 		}
@@ -431,12 +456,12 @@ nl_get_family(const char family[], uint16_t *family_id)
 		}
 
 		uint32_t seq_id;
-		result = netlink_request(&req.hdr, &seq_id);
+		result = netlink_request(NETLINK_GENERIC, &req.hdr, &seq_id);
 		if (result < 0) {
 			break;
 		}
 
-		result = netlink_recv(local_buf, seq_id, false);
+		result = netlink_recv(NETLINK_GENERIC, local_buf, seq_id, false);
 		if (result < 0) {
 			break;
 		}
