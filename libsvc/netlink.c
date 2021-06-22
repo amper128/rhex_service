@@ -10,6 +10,7 @@
 #include <linux/genetlink.h>
 #include <linux/if_arp.h>
 #include <linux/netlink.h>
+#include <linux/nl80211.h>
 #include <linux/rtnetlink.h>
 #include <linux/types.h>
 #include <memory.h>
@@ -25,10 +26,21 @@
 
 static int nl_socket = -1;
 static int gennl_socket = -1;
+static int nl80211fam = -1;
 static uint32_t nl_seq_id = 0U;
 
 #define BUF_SIZE (8192)
 static uint8_t local_buf[BUF_SIZE];
+
+/**
+ * gennlmsg_data - head of message payload
+ * @gnlh: genetlink message header
+ */
+static inline void *
+genlmsg_data(const struct genlmsghdr *gnlh)
+{
+	return ((unsigned char *)gnlh + GENL_HDRLEN);
+}
 
 static int
 init_netlink(int type)
@@ -123,7 +135,7 @@ netlink_recv(int type, uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 
 		if (nlmsg_ptr->nlmsg_type == NLMSG_ERROR) {
 			struct nlmsgerr *err = NLMSG_DATA(nlmsg_ptr);
-			result = -err->error;
+			result = err->error;
 			break;
 		}
 
@@ -135,7 +147,7 @@ netlink_recv(int type, uint8_t buf[], uint32_t seq_id, bool wait_confirm)
 			break;
 		}
 
-		result = msg_len;
+		result = (int)nlmsg_ptr->nlmsg_len;
 
 		if (!wait_confirm) {
 			break;
@@ -354,12 +366,6 @@ nl_get_eth_list(if_desc_t if_list[])
 }
 
 int
-nl_get_wlan_list(if_desc_t if_list[])
-{
-	return nl_link_list(if_list, ARPHRD_IEEE80211);
-}
-
-int
 nl_get_wlan_rt_list(if_desc_t if_list[])
 {
 	return nl_link_list(if_list, ARPHRD_IEEE80211_RADIOTAP);
@@ -380,6 +386,7 @@ nl_link_updown(const if_desc_t *iface, bool up)
 		struct {
 			struct nlmsghdr hdr;
 			struct ifinfomsg ifi;
+			struct rtattr attr;
 			char ifname[IFNAM_SIZE];
 		} req;
 
@@ -516,6 +523,183 @@ nl_get_family(const char family[], uint16_t *family_id)
 			nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
 		}
 
+	} while (false);
+
+	return result;
+}
+
+int
+nl_wlan_set_monitor(const if_desc_t *iface)
+{
+	int result = 0;
+
+	do {
+		if (nl80211fam == -1) {
+			uint16_t fam;
+			result = nl_get_family("nl80211", &fam);
+			if (result) {
+				break;
+			}
+
+			nl80211fam = (int)fam;
+		}
+
+		struct {
+			struct nlmsghdr hdr;
+			struct genlmsghdr msg;
+			uint8_t data[16U];
+		} req;
+
+		memset(&req, 0U, sizeof(req));
+
+		req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct genlmsghdr));
+		req.hdr.nlmsg_flags = (NLM_F_REQUEST | NLM_F_ACK);
+		req.hdr.nlmsg_type = nl80211fam;
+
+		req.msg.cmd = NL80211_CMD_SET_INTERFACE;
+
+		result = netlink_addattr_l(&req.hdr, sizeof(req), NL80211_ATTR_IFINDEX,
+					   &iface->ifi_index, sizeof(iface->ifi_index));
+		if (result) {
+			break;
+		}
+
+		int type = NL80211_IFTYPE_MONITOR;
+		result = netlink_addattr_l(&req.hdr, sizeof(req), NL80211_ATTR_IFTYPE, &type,
+					   sizeof(type));
+		if (result) {
+			break;
+		}
+
+		uint32_t seq_id;
+		result = netlink_request(NETLINK_GENERIC, &req.hdr, &seq_id);
+		if (result < 0) {
+			break;
+		}
+
+		result = netlink_recv(NETLINK_GENERIC, local_buf, seq_id, true);
+		if (result < 0) {
+			break;
+		}
+
+		struct nlmsghdr *nlmsg_ptr;
+		nlmsg_ptr = (struct nlmsghdr *)local_buf;
+		result = netlink_check_error(nlmsg_ptr, (uint32_t)result);
+	} while (false);
+
+	return result;
+}
+
+int
+nl_get_wlan_list(if_desc_t if_list[])
+{
+	int result = 0;
+
+	do {
+		if (nl80211fam == -1) {
+			uint16_t fam;
+			result = nl_get_family("nl80211", &fam);
+			if (result) {
+				break;
+			}
+
+			nl80211fam = (int)fam;
+		}
+
+		struct {
+			struct nlmsghdr hdr;
+			struct genlmsghdr msg;
+		} req;
+
+		memset(&req, 0, sizeof(req));
+
+		req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct genlmsghdr));
+		req.hdr.nlmsg_flags = (NLM_F_REQUEST | NLM_F_ACK | NLM_F_DUMP);
+		req.hdr.nlmsg_type = nl80211fam;
+
+		req.msg.cmd = NL80211_CMD_GET_INTERFACE;
+
+		uint32_t seq_id;
+
+		if (netlink_request(NETLINK_GENERIC, &req.hdr, &seq_id) < 0) {
+			result = -1;
+			break;
+		}
+
+		size_t if_count = 0U;
+
+		while (result >= 0) {
+			int r = netlink_recv(NETLINK_GENERIC, local_buf, seq_id, false);
+			if (r < 0) {
+				result = -1;
+				break;
+			}
+
+			uint32_t msg_len = (uint32_t)r;
+			struct nlmsghdr *nlmsg_ptr;
+			nlmsg_ptr = (struct nlmsghdr *)local_buf;
+			while (NLMSG_OK(nlmsg_ptr, msg_len)) {
+				if (nlmsg_ptr->nlmsg_type == NLMSG_DONE) {
+					break;
+				}
+
+				if (nlmsg_ptr->nlmsg_type != nl80211fam) {
+					nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+					continue;
+				}
+
+				struct genlmsghdr *msg_ptr;
+
+				msg_ptr = NLMSG_DATA(nlmsg_ptr);
+
+				if (msg_ptr->cmd != NL80211_CMD_NEW_INTERFACE) {
+					nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+					continue;
+				}
+
+				struct rtattr *attr_ptr;
+				uint32_t attr_len;
+
+				attr_ptr = genlmsg_data(msg_ptr);
+				attr_len = nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(*msg_ptr));
+
+				int ifindex;
+
+				while (RTA_OK(attr_ptr, attr_len)) {
+					if (attr_ptr->rta_type == NL80211_ATTR_IFINDEX) {
+						ifindex = *((int *)RTA_DATA(attr_ptr));
+					}
+					if (attr_ptr->rta_type == NL80211_ATTR_IFNAME) {
+						if (if_count < NL_MAX_IFACES) {
+							strncpy(if_list[if_count].ifname,
+								(char *)RTA_DATA(attr_ptr),
+								IFNAMSIZ - 1U);
+							if_list[if_count].ifi_index = ifindex;
+							if_count++;
+							result = if_count;
+						}
+					}
+
+					attr_ptr = RTA_NEXT(attr_ptr, attr_len);
+					attr_len =
+					    nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(*msg_ptr));
+				}
+
+				nlmsg_ptr = NLMSG_NEXT(nlmsg_ptr, msg_len);
+			}
+
+			if (nlmsg_ptr->nlmsg_type == NLMSG_DONE) {
+				break;
+			}
+
+			if (nlmsg_ptr->nlmsg_type == NLMSG_ERROR) {
+				struct nlmsgerr *err = NLMSG_DATA(nlmsg_ptr);
+				result = err->error;
+				if (result) {
+					break;
+				}
+			}
+		}
 	} while (false);
 
 	return result;
