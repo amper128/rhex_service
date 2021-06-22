@@ -559,7 +559,7 @@ wfb_stream_init(wfb_stream_t *stream, int port, int packet_type, bool useMCS, bo
 	if_desc_t if_list[NL_MAX_IFACES];
 	int res;
 
-	res = nl_get_wifi_list(if_list);
+	res = nl_get_wlan_rt_list(if_list);
 	if (res < 0) {
 		log_err("cannot get wlan list");
 		return res;

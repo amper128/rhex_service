@@ -296,7 +296,7 @@ wfb_rx_init(wfb_rx_t *wfb_rx, int port)
 	if_desc_t if_list[4U];
 	int if_count;
 
-	if_count = nl_get_wifi_list(if_list);
+	if_count = nl_get_wlan_rt_list(if_list);
 	if (if_count < 0) {
 		result = -1;
 		log_err("cannot get wlan list");

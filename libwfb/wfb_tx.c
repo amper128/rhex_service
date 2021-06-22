@@ -264,7 +264,7 @@ wfb_tx_init(wfb_tx_t *wfb_tx, int port, bool use_cts)
 		if_desc_t if_list[NL_MAX_IFACES];
 		int res;
 
-		res = nl_get_wifi_list(if_list);
+		res = nl_get_wlan_rt_list(if_list);
 		if (res < 0) {
 			result = res;
 			log_err("cannot get wlan list");

@@ -354,7 +354,13 @@ nl_get_eth_list(if_desc_t if_list[])
 }
 
 int
-nl_get_wifi_list(if_desc_t if_list[])
+nl_get_wlan_list(if_desc_t if_list[])
+{
+	return nl_link_list(if_list, ARPHRD_IEEE80211);
+}
+
+int
+nl_get_wlan_rt_list(if_desc_t if_list[])
 {
 	return nl_link_list(if_list, ARPHRD_IEEE80211_RADIOTAP);
 }

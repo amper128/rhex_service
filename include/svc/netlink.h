@@ -19,7 +19,9 @@ typedef struct {
 
 int nl_get_eth_list(if_desc_t if_list[]);
 
-int nl_get_wifi_list(if_desc_t if_list[]);
+int nl_get_wlan_list(if_desc_t if_list[]);
+
+int nl_get_wlan_rt_list(if_desc_t if_list[]);
 
 int nl_get_can_list(if_desc_t if_list[]);
 
