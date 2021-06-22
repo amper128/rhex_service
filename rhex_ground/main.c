@@ -15,6 +15,7 @@
  * RC tx - port 5565;
  */
 
+#include <string.h>
 #include <sys/prctl.h>
 
 #include <log/log.h>
@@ -133,6 +134,32 @@ main_cycle(void)
 	}
 }
 
+static void
+setup_wfb(void)
+{
+	if_desc_t wlan_list[NL_MAX_IFACES];
+	int wlan_count;
+
+	wlan_count = nl_get_wlan_list(wlan_list);
+	log_dbg("wlan: %i", wlan_count);
+	int i;
+
+	for (i = 0; i < wlan_count; i++) {
+		log_dbg("down %s", wlan_list[i].ifname);
+		if (nl_link_down(&wlan_list[i])) {
+			break;
+		}
+		log_dbg("set monitor %s", wlan_list[i].ifname);
+		if (nl_wlan_set_monitor(&wlan_list[i])) {
+			break;
+		}
+		log_dbg("up %s", wlan_list[i].ifname);
+		if (nl_link_up(&wlan_list[i])) {
+			break;
+		}
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -150,6 +177,8 @@ main(int argc, char **argv)
 	if (timerfd < 0) {
 		return 1;
 	}
+
+	setup_wfb();
 
 	/* FIXME */
 	shm_map_init("shm_rx_status", sizeof(wifibroadcast_rx_status_t));
