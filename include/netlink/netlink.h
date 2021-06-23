@@ -34,3 +34,5 @@ int nl_link_down(const if_desc_t *iface);
 int nl_get_family(const char family[], uint16_t *family_id);
 
 int nl_wlan_set_monitor(const if_desc_t *iface);
+
+int nl_wlan_set_freq(const if_desc_t *iface, uint32_t freq, uint32_t width, uint32_t ht);

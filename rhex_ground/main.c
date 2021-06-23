@@ -15,6 +15,7 @@
  * RC tx - port 5565;
  */
 
+#include <linux/nl80211.h>
 #include <string.h>
 #include <sys/prctl.h>
 
@@ -147,14 +148,24 @@ setup_wfb(void)
 	for (i = 0; i < wlan_count; i++) {
 		log_dbg("down %s", wlan_list[i].ifname);
 		if (nl_link_down(&wlan_list[i])) {
+			log_err("cannot down %s", wlan_list[i].ifname);
 			break;
 		}
 		log_dbg("set monitor %s", wlan_list[i].ifname);
 		if (nl_wlan_set_monitor(&wlan_list[i])) {
+			log_err("cannot set monitor %s", wlan_list[i].ifname);
 			break;
 		}
 		log_dbg("up %s", wlan_list[i].ifname);
 		if (nl_link_up(&wlan_list[i])) {
+			log_err("cannot up %s", wlan_list[i].ifname);
+			break;
+		}
+
+		log_dbg("set freq %s", wlan_list[i].ifname);
+		if (nl_wlan_set_freq(&wlan_list[i], 5200, NL80211_CHAN_WIDTH_20_NOHT,
+				     NL80211_CHAN_NO_HT)) {
+			log_err("cannot change freq %s", wlan_list[i].ifname);
 			break;
 		}
 	}

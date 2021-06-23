@@ -18,6 +18,7 @@ target_sources(netlink
 		link_list.c
 		get_wlan_list.c
 		wlan_set_monitor.c
+		wlan_set_freq.c
 		${libnetlink_headers}
 	)
 
