@@ -29,4 +29,5 @@ target_link_libraries(rhex_air_service
 	log
 	wfb
 	io
+	netlink
 	)

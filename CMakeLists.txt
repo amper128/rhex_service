@@ -81,6 +81,7 @@ add_subdirectory(libsvc)
 add_subdirectory(liblog)
 add_subdirectory(libwfb)
 add_subdirectory(libio)
+add_subdirectory(libnetlink)
 
 add_subdirectory(rhex_air)
 add_subdirectory(rhex_ground)

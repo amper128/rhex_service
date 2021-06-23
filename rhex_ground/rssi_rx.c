@@ -10,8 +10,8 @@
 #include <string.h>
 
 #include <log/log.h>
+#include <netlink/netlink.h>
 #include <proto/telemetry.h>
-#include <svc/netlink.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
 #include <wfb/wfb_rx.h>

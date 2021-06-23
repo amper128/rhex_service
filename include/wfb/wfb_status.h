@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <netlink/netlink.h>
 #include <stdint.h>
-#include <svc/netlink.h>
 #include <time.h>
 
 typedef struct {

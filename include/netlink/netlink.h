@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <svc/platform.h>
+
 #define IFNAM_SIZE (16U)
 
 #define NL_MAX_IFACES (4U)

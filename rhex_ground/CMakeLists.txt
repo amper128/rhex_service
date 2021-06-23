@@ -22,4 +22,5 @@ target_link_libraries(rhex_ground
 	log
 	wfb
 	io
+	netlink
 	)

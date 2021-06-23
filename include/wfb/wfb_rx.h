@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <netlink/netlink.h>
 #include <pcap.h>
-#include <svc/netlink.h>
 #include <svc/platform.h>
 
 #define MAX_MTU (1500)

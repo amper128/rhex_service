@@ -8,7 +8,6 @@ file(GLOB_RECURSE libsvc_headers "include/*.h")
 
 target_sources(svc
 	PRIVATE
-		netlink.c
 		sharedmem.c
 		svc.c
 		timerfd.c

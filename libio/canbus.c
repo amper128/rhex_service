@@ -14,8 +14,8 @@
 
 #include <io/canbus.h>
 #include <log/log.h>
+#include <netlink/netlink.h>
 #include <proto/can_proto.h>
-#include <svc/netlink.h>
 #include <svc/platform.h>
 
 static int can_sock = -1;
