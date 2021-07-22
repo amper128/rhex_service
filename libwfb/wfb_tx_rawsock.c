@@ -651,7 +651,7 @@ wfb_tx_stream(wfb_stream_t *wfb_stream, uint8_t data[], uint16_t len)
 		}
 
 		/* распределяем данные по пакетам */
-		size_t copy_len = len - offset;
+		size_t copy_len = (size_t)(len - offset);
 		if (copy_len > (param_packet_length - pb->len)) {
 			copy_len = param_packet_length - pb->len;
 		}

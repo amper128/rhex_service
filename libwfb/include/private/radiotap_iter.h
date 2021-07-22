@@ -19,7 +19,7 @@ struct radiotap_align_size {
 
 struct ieee80211_radiotap_namespace {
 	const struct radiotap_align_size *align_size;
-	int n_bits;
+	size_t n_bits;
 	uint32_t oui;
 	uint8_t subns;
 };
@@ -72,13 +72,13 @@ struct ieee80211_radiotap_iterator {
 	unsigned char *this_arg;
 	const struct radiotap_override *overrides; /* Only for RADIOTAP_SUPPORT_OVERRIDES */
 	int n_overrides;			   /* Only for RADIOTAP_SUPPORT_OVERRIDES */
-	int this_arg_index;
-	int this_arg_size;
+	size_t this_arg_index;
+	size_t this_arg_size;
 
 	int is_radiotap_ns;
 
 	int _max_length;
-	int _arg_index;
+	size_t _arg_index;
 	uint32_t _bitmap_shifter;
 	int _reset_on_ext;
 };

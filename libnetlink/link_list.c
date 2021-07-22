@@ -92,7 +92,7 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 							if_list[if_count].ifi_index =
 							    ifi_ptr->ifi_index;
 							if_count++;
-							result = if_count;
+							result = (int)if_count;
 						}
 					}
 

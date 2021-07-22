@@ -397,8 +397,9 @@ ieee80211_radiotap_iterator_next(struct ieee80211_radiotap_iterator *iterator)
 			    (unsigned long)iterator->_max_length)
 				return -EINVAL;
 
-			oui = (uint32_t)(*iterator->_arg << 16U) | (*(iterator->_arg + 1U) << 8U) |
-			      *(iterator->_arg + 2U);
+			oui = (uint32_t)(*iterator->_arg << 16U) |
+			      (uint32_t)(*(iterator->_arg + 1U) << 8U) |
+			      (uint32_t)(*(iterator->_arg + 2U));
 			subns = *(iterator->_arg + 3U);
 
 			find_ns(iterator, oui, subns);
