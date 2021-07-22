@@ -85,7 +85,7 @@ nl_get_wlan_list(if_desc_t if_list[])
 								IFNAMSIZ - 1U);
 							if_list[if_count].ifi_index = ifindex;
 							if_count++;
-							result = if_count;
+							result = (int)if_count;
 						}
 					}
 
