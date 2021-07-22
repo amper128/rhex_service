@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 typedef unsigned int u32;
@@ -31,7 +32,7 @@ typedef unsigned long ulong;
 		struct packed_dummy_struct {                                                       \
 			typeof(*(p)) __val;                                                        \
 		} __attribute__((packed)) *__ptr = (void *)(p);                                    \
-                                                                                                   \
+												   \
 		__ptr->__val;                                                                      \
 	})
 
