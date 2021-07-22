@@ -304,7 +304,7 @@ generate_gf(void)
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
 static void
-slow_addmul1(gf *dst1, gf *src1, gf c, int sz)
+slow_addmul1(gf *dst1, gf *src1, gf c, size_t sz)
 {
 	USE_GF_MULC;
 	register gf *dst = dst1, *src = src1;
@@ -346,7 +346,7 @@ slow_addmul1(gf *dst1, gf *src1, gf c, int sz)
 #define LOOPSIZE 8
 
 static void
-addmul1(gf *dst1, gf *src1, gf c, int sz)
+addmul1(gf *dst1, gf *src1, gf c, size_t sz)
 {
 	USE_GF_MULC;
 
@@ -434,7 +434,7 @@ addmul(gf *dst, gf *src, gf c, size_t sz)
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
 static void
-slow_mul1(gf *dst1, gf *src1, gf c, int sz)
+slow_mul1(gf *dst1, gf *src1, gf c, size_t sz)
 {
 	USE_GF_MULC;
 	register gf *dst = dst1, *src = src1;
@@ -473,7 +473,7 @@ slow_mul1(gf *dst1, gf *src1, gf c, int sz)
 
 #if defined i386 && defined USE_ASSEMBLER
 static void
-mul1(gf *dst1, gf *src1, gf c, int sz)
+mul1(gf *dst1, gf *src1, gf c, size_t sz)
 {
 	USE_GF_MULC;
 
