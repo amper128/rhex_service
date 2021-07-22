@@ -10,6 +10,7 @@
 
 #include <linux/genetlink.h>
 #include <linux/netlink.h>
+#include <linux/rtnetlink.h>
 
 #include <svc/platform.h>
 
@@ -42,4 +43,10 @@ static inline void *
 genlmsg_data(const struct genlmsghdr *gnlh)
 {
 	return ((unsigned char *)gnlh + GENL_HDRLEN);
+}
+
+static inline void *
+nlmsg_tail(const struct nlmsghdr *nlh)
+{
+	return (unsigned char *)nlh + NLMSG_ALIGN(nlh->nlmsg_len);
 }

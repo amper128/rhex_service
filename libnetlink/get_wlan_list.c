@@ -6,7 +6,6 @@
  * @brief Получение списка беспроводных интерфейсов (аналог iw dev)
  */
 
-#include <libnetlink.h>
 #include <linux/if_arp.h>
 #include <linux/nl80211.h>
 
@@ -73,7 +72,7 @@ nl_get_wlan_list(if_desc_t if_list[])
 				attr_ptr = genlmsg_data(msg_ptr);
 				attr_len = nlmsg_ptr->nlmsg_len - NLMSG_LENGTH(sizeof(*msg_ptr));
 
-				int ifindex;
+				int ifindex = 0;
 
 				while (RTA_OK(attr_ptr, attr_len)) {
 					if (attr_ptr->rta_type == NL80211_ATTR_IFINDEX) {

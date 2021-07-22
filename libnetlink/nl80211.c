@@ -6,7 +6,6 @@
  * @brief Основные функции работы с netlink
  */
 
-#include <libnetlink.h>
 #include <linux/genetlink.h>
 #include <linux/if_arp.h>
 #include <linux/netlink.h>
@@ -21,6 +20,7 @@
 #include <unistd.h>
 
 #include <log/log.h>
+#include <netlink/netlink.h>
 
 #include <private/nl.h>
 

@@ -6,7 +6,7 @@
  * @brief Добавление атрибута к запросу netlink
  */
 
-#include <libnetlink.h>
+#include <netlink/netlink.h>
 
 #include <log/log.h>
 
@@ -28,7 +28,7 @@ netlink_addattr_u32(struct nlmsghdr *hdr, uint32_t maxlen, uint16_t type, uint32
 			break;
 		}
 
-		struct rtattr *rta = NLMSG_TAIL(hdr);
+		struct rtattr *rta = nlmsg_tail(hdr);
 		rta->rta_type = type;
 		rta->rta_len = (uint16_t)len;
 		memcpy(RTA_DATA(rta), &value, sizeof(value));

@@ -30,7 +30,7 @@ netlink_addattr_l(struct nlmsghdr *hdr, uint32_t maxlen, uint16_t type, const vo
 			break;
 		}
 
-		struct rtattr *rta = NLMSG_TAIL(hdr);
+		struct rtattr *rta = nlmsg_tail(hdr);
 		rta->rta_type = type;
 		rta->rta_len = (uint16_t)len;
 		if (attrlen > 0U) {
