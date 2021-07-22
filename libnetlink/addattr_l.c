@@ -6,7 +6,7 @@
  * @brief Добавление атрибута к запросу netlink
  */
 
-#include <libnetlink.h>
+#include <netlink/netlink.h>
 
 #include <log/log.h>
 
