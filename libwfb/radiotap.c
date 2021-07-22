@@ -321,7 +321,7 @@ ieee80211_radiotap_iterator_next(struct ieee80211_radiotap_iterator *iterator)
 {
 	while (1) {
 		int hit = 0;
-		int pad, align, size, subns;
+		unsigned long pad, align, size, subns;
 		uint32_t oui;
 
 		/* if no more EXT bits, that's it */
@@ -390,7 +390,7 @@ ieee80211_radiotap_iterator_next(struct ieee80211_radiotap_iterator *iterator)
 			iterator->_arg += align - pad;
 
 		if (iterator->_arg_index % 32 == IEEE80211_RADIOTAP_VENDOR_NAMESPACE) {
-			int vnslen;
+			unsigned long vnslen;
 
 			if ((unsigned long)iterator->_arg + (unsigned long)size -
 				(unsigned long)iterator->_rtheader >
