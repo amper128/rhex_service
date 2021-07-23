@@ -127,7 +127,7 @@ read_netlink_recv(int type, uint8_t **buf, uint32_t seq_id, bool wait_confirm)
 			break;
 		}
 
-		result = (int)nlmsg_ptr->nlmsg_len;
+		result = msg_len;
 
 		if (!wait_confirm) {
 			break;
