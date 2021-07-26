@@ -6,6 +6,7 @@
  * @brief Точка входа сервиса, основные функции
  */
 
+#include <linux/nl80211.h>
 #include <sys/prctl.h>
 
 #include <log/log.h>
@@ -154,6 +155,13 @@ setup_wfb(void)
 		}
 		log_dbg("up %s", wlan_list[i].ifname);
 		if (nl_link_up(&wlan_list[i])) {
+			break;
+		}
+
+		log_dbg("set freq %s", wlan_list[i].ifname);
+		if (nl_wlan_set_freq(&wlan_list[i], 5200, NL80211_CHAN_WIDTH_20_NOHT,
+				     NL80211_CHAN_NO_HT)) {
+			log_err("cannot change freq %s", wlan_list[i].ifname);
 			break;
 		}
 	}
