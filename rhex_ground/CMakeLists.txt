@@ -7,6 +7,7 @@ add_executable(rhex_ground
 	qgc_forward.c
 	rhex_telemetry_rx.c
 	rssi_rx.c
+	video.c
 	${rhex_ground_headers}
 	)
 

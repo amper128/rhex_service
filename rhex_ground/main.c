@@ -29,6 +29,7 @@
 #include <private/qgc_forward.h>
 #include <private/rhex_telemetry_rx.h>
 #include <private/rssi_rx.h>
+#include <private/video.h>
 
 #define SERVICES_MAX (32U)
 
@@ -108,8 +109,9 @@ start_microservices(void)
 		size_t count;
 	} svc_start_list = {{{"rssi", rssi_rx_init, rssi_rx_main, 100ULL * TIME_MS},
 			     {"telemetry", telemetry_rx_init, telemetry_rx_main, 10ULL * TIME_MS},
-			     {"rssi qgc", rssi_qgc_init, rssi_qgc_main, 250ULL * TIME_MS}},
-			    3U};
+			     {"rssi qgc", rssi_qgc_init, rssi_qgc_main, 250ULL * TIME_MS},
+			     {"video", video_init, video_main, 0ULL}},
+			    4U};
 
 	size_t i;
 
