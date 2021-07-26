@@ -98,12 +98,13 @@ rhex_telemetry_main(void)
 	int result = 0;
 
 	do {
-		result = shm_map_open("shm_gps", &gps_shm);
-		if (result != 0) {
+		if (!shm_map_open("shm_gps", &gps_shm)) {
+			result = 1;
 			break;
 		}
-		result = shm_map_open("shm_sensors", &sensors_shm);
-		if (result != 0) {
+
+		if (!shm_map_open("shm_sensors", &sensors_shm)) {
+			result = 1;
 			break;
 		}
 
