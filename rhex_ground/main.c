@@ -28,6 +28,7 @@
 
 #include <private/qgc_forward.h>
 #include <private/rhex_telemetry_rx.h>
+#include <private/rhex_tx_rc.h>
 #include <private/rssi_rx.h>
 #include <private/video.h>
 
@@ -110,8 +111,9 @@ start_microservices(void)
 	} svc_start_list = {{{"rssi", rssi_rx_init, rssi_rx_main, 100ULL * TIME_MS},
 			     {"telemetry", telemetry_rx_init, telemetry_rx_main, 10ULL * TIME_MS},
 			     {"rssi qgc", rssi_qgc_init, rssi_qgc_main, 250ULL * TIME_MS},
-			     {"video", video_init, video_main, 0ULL}},
-			    4U};
+			     {"video", video_init, video_main, 0ULL},
+			     {"rc_tx", rhex_tx_rc_init, rhex_tx_rc_main, 0ULL}},
+			    5U};
 
 	size_t i;
 
@@ -192,9 +194,6 @@ main(int argc, char **argv)
 	}
 
 	setup_wfb();
-
-	/* FIXME */
-	shm_map_init("shm_tx_status", sizeof(wifibroadcast_tx_status_t));
 
 	if (start_microservices()) {
 		return 1;
