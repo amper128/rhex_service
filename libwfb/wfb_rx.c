@@ -69,7 +69,7 @@ open_and_configure_interface(const char name[], monitor_interface_t *interface, 
 	/* open the interface in pcap */
 	szErrbuf[0] = '\0';
 
-	interface->ppcap = pcap_open_live(name, 400, 0, -1, szErrbuf);
+	interface->ppcap = pcap_open_live(name, 3072, 0, -1, szErrbuf);
 	if (interface->ppcap == NULL) {
 		log_err("Unable to open %s: %s", name, szErrbuf);
 		exit(1);
@@ -191,14 +191,15 @@ wfb_rx_packet_interface(monitor_interface_t *interface, wfb_rx_packet_t *rx_data
 		exit(1);
 	}
 
-	if (ieee80211_radiotap_iterator_init(&rti, (struct ieee80211_radiotap_header *)pu8Payload,
-					     ppcapPacketHeader->len, &vns) < 0) {
+	if (ieee80211_radiotap_iterator_init_rc(&rti,
+						(struct ieee80211_radiotap_header *)pu8Payload,
+						ppcapPacketHeader->len, &vns) < 0) {
 		exit(1);
 	}
 
 	int dbm = -127;
 
-	while ((n = ieee80211_radiotap_iterator_next(&rti)) == 0) {
+	while ((n = ieee80211_radiotap_iterator_next_rc(&rti)) == 0) {
 		switch (rti.this_arg_index) {
 		case IEEE80211_RADIOTAP_FLAGS:
 			// prd.m_nRadiotapFlags = *rti.this_arg;

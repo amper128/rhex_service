@@ -10,8 +10,10 @@ target_sources(wfb
 	PRIVATE
 		fec.c
 		radiotap.c
+		radiotap_rc.c
 		wfb_rx.c
 		wfb_tx.c
+		wfb_rx_rawsock.c
 		wfb_tx_rawsock.c
 		${libwfb_headers}
 	)
