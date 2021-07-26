@@ -86,6 +86,8 @@ nl_link_list(if_desc_t if_list[], unsigned short ifi_type)
 				while (RTA_OK(attr_ptr, attr_len)) {
 					if (attr_ptr->rta_type == IFLA_IFNAME) {
 						if (if_count < NL_MAX_IFACES) {
+							memset(if_list[if_count].ifname, 0,
+							       IFNAMSIZ);
 							strncpy(if_list[if_count].ifname,
 								(char *)RTA_DATA(attr_ptr),
 								IFNAMSIZ - 1U);

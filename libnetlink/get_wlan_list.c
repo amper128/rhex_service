@@ -80,6 +80,8 @@ nl_get_wlan_list(if_desc_t if_list[])
 					}
 					if (attr_ptr->rta_type == NL80211_ATTR_IFNAME) {
 						if (if_count < NL_MAX_IFACES) {
+							memset(if_list[if_count].ifname, 0,
+							       IFNAMSIZ);
 							strncpy(if_list[if_count].ifname,
 								(char *)RTA_DATA(attr_ptr),
 								IFNAMSIZ - 1U);
