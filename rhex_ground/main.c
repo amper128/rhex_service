@@ -194,9 +194,7 @@ main(int argc, char **argv)
 	setup_wfb();
 
 	/* FIXME */
-	shm_map_init("shm_rx_status", sizeof(wifibroadcast_rx_status_t));
 	shm_map_init("shm_tx_status", sizeof(wifibroadcast_tx_status_t));
-	shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc));
 
 	if (start_microservices()) {
 		return 1;

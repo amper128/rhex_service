@@ -6,11 +6,6 @@
  * @brief Телеметрия канала связи и оборудования, прием
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include <log/log.h>
-#include <netlink/netlink.h>
 #include <proto/telemetry.h>
 #include <svc/sharedmem.h>
 #include <svc/svc.h>
@@ -19,26 +14,28 @@
 
 #include <private/rssi_rx.h>
 
-static wifibroadcast_rx_status_t rx_status;
 static wifibroadcast_rx_status_t rx_status_uplink;
-static wifibroadcast_rx_status_t_rc rx_status_rc;
 static wifibroadcast_rx_status_t_sysair rx_status_sysair;
 
-static shm_t rx_status_shm;
 static shm_t rx_status_uplink_shm;
-static shm_t rx_status_rc_shm;
 static shm_t rx_status_sysair_shm;
 
 int
 rssi_rx_init(void)
 {
-	int result = 0;
+	int result = 1;
 
 	do {
-		shm_map_init("shm_rx_status", sizeof(wifibroadcast_rx_status_t));
-		shm_map_init("shm_tx_status", sizeof(wifibroadcast_tx_status_t));
-		shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc));
-		shm_map_init("shm_rx_status_sysair", sizeof(wifibroadcast_rx_status_t_sysair));
+		if (!shm_map_init("shm_tx_status", sizeof(wifibroadcast_tx_status_t))) {
+			break;
+		}
+
+		if (!shm_map_init("shm_rx_status_sysair",
+				  sizeof(wifibroadcast_rx_status_t_sysair))) {
+			break;
+		}
+
+		result = 0;
 	} while (false);
 
 	return result;
@@ -49,7 +46,7 @@ process_packet(wfb_rx_packet_t *rx_data)
 {
 	struct rssi_data_t *payloaddata = (struct rssi_data_t *)rx_data->data;
 
-	log_dbg("signal: %d", payloaddata->signal);
+	/*log_dbg("signal: %d", payloaddata->signal);
 	log_dbg("lostpackets: %d", payloaddata->lostpackets);
 	log_dbg("signal_rc: %d", payloaddata->signal_rc);
 	log_dbg("lostpackets_rc: %d", payloaddata->lostpackets_rc);
@@ -61,12 +58,10 @@ process_packet(wfb_rx_packet_t *rx_data)
 	log_dbg("bitrate_measured_kbit: %d", payloaddata->bitrate_measured_kbit);
 
 	log_dbg("cts: %d", payloaddata->cts);
-	log_dbg("undervolt: %d", payloaddata->undervolt);
+	log_dbg("undervolt: %d", payloaddata->undervolt);*/
 
 	rx_status_uplink.adapter[0].current_signal_dbm = payloaddata->signal;
 	rx_status_uplink.lost_packet_cnt = payloaddata->lostpackets;
-	rx_status_rc.adapter[0].current_signal_dbm = payloaddata->signal_rc;
-	rx_status_rc.lost_packet_cnt = payloaddata->lostpackets_rc;
 
 	rx_status_sysair.cpuload = payloaddata->cpuload;
 	rx_status_sysair.temp = payloaddata->temp;
@@ -84,10 +79,7 @@ process_packet(wfb_rx_packet_t *rx_data)
 
 	/* write to shm */
 	shm_map_write(&rx_status_uplink_shm, &rx_status_uplink, sizeof(rx_status_uplink));
-	shm_map_write(&rx_status_rc_shm, &rx_status_rc, sizeof(rx_status_rc));
 	shm_map_write(&rx_status_sysair_shm, &rx_status_sysair, sizeof(rx_status_sysair));
-
-	// write(STDOUT_FILENO, pu8Payload, 18);
 
 	return (0);
 }
@@ -95,20 +87,21 @@ process_packet(wfb_rx_packet_t *rx_data)
 static void
 status_memory_init(wifibroadcast_rx_status_t *s)
 {
-	s->received_block_cnt = 0;
-	s->damaged_block_cnt = 0;
-	s->received_packet_cnt = 0;
-	s->lost_packet_cnt = 0;
-	s->tx_restart_cnt = 0;
-	s->wifi_adapter_cnt = 0;
-	s->kbitrate = 0;
-	s->current_air_datarate_kbit = 0;
+	s->received_block_cnt = 0U;
+	s->damaged_block_cnt = 0U;
+	s->received_packet_cnt = 0U;
+	s->lost_packet_cnt = 0U;
+	s->tx_restart_cnt = 0U;
+	s->wifi_adapter_cnt = 0U;
+	s->kbitrate = 0U;
+	s->current_air_datarate_kbit = 0U;
 
 	size_t i;
-	for (i = 0; i < NL_MAX_IFACES; i++) {
-		s->adapter[i].received_packet_cnt = 0;
-		s->adapter[i].wrong_crc_cnt = 0;
-		s->adapter[i].current_signal_dbm = -126;
+	for (i = 0U; i < NL_MAX_IFACES; i++) {
+		s->adapter[i].received_packet_cnt = 0U;
+		s->adapter[i].wrong_crc_cnt = 0U;
+		s->adapter[i].current_signal_dbm = -127;
+		s->adapter[i].signal_good = 0;
 
 		/* Set to 2 to see if it didn't get set later */
 		s->adapter[i].type = 2;
@@ -118,16 +111,16 @@ status_memory_init(wifibroadcast_rx_status_t *s)
 static void
 status_memory_init_sysair(wifibroadcast_rx_status_t_sysair *s)
 {
-	s->cpuload = 0;
-	s->temp = 0;
-	s->skipped_fec_cnt = 0;
-	s->injected_block_cnt = 0;
-	s->injection_fail_cnt = 0;
-	s->injection_time_block = 0;
-	s->bitrate_kbit = 0;
-	s->bitrate_measured_kbit = 0;
-	s->cts = 0;
-	s->undervolt = 0;
+	s->cpuload = 0U;
+	s->temp = 0U;
+	s->skipped_fec_cnt = 0U;
+	s->injected_block_cnt = 0U;
+	s->injection_fail_cnt = 0U;
+	s->injection_time_block = 0U;
+	s->bitrate_kbit = 0U;
+	s->bitrate_measured_kbit = 0U;
+	s->cts = 0U;
+	s->undervolt = 0U;
 }
 
 int
@@ -141,44 +134,42 @@ rssi_rx_main(void)
 
 	int result = 0;
 
-	result = wfb_rx_init(&rssi_rx, 63);
-	if (result != 0) {
-		return result;
-	}
-
-	result = shm_map_open("shm_rx_status", &rx_status_shm);
-	result = shm_map_open("shm_tx_status", &rx_status_uplink_shm);
-	result = shm_map_open("shm_rx_status_rc", &rx_status_rc_shm);
-	result = shm_map_open("shm_rx_status_sysair", &rx_status_sysair_shm);
-
-	status_memory_init(&rx_status);
-	status_memory_init(&rx_status_uplink);
-	status_memory_init_sysair(&rx_status_sysair);
-
-	rx_status.wifi_adapter_cnt = rssi_rx.count;
-	rx_status_uplink.wifi_adapter_cnt = rssi_rx.count;
-	rx_status_rc.wifi_adapter_cnt = rssi_rx.count;
-
-	size_t i;
-	for (i = 0; i < NL_MAX_IFACES; i++) {
-		rx_status.adapter[i].current_signal_dbm = -126;
-		rx_status.adapter[i].signal_good = 1;
-	}
-
-	shm_map_write(&rx_status_shm, &rx_status, sizeof(rx_status));
-	shm_map_write(&rx_status_uplink_shm, &rx_status_uplink, sizeof(rx_status_uplink));
-	shm_map_write(&rx_status_rc_shm, &rx_status_rc, sizeof(rx_status_rc));
-	shm_map_write(&rx_status_sysair_shm, &rx_status_sysair, sizeof(rx_status_sysair));
-
-	while (svc_cycle()) {
-		wfb_rx_packet_t rx_data = {
-		    0,
-		};
-
-		if (wfb_rx_packet(&rssi_rx, &rx_data) > 0) {
-			result = process_packet(&rx_data);
+	do {
+		result = wfb_rx_init(&rssi_rx, 63);
+		if (result != 0) {
+			break;
 		}
-	}
 
-	return 0;
+		if (!shm_map_open("shm_tx_status", &rx_status_uplink_shm)) {
+			log_err("cannot open shm_tx_status");
+			result = 1;
+			break;
+		}
+
+		if (!shm_map_open("shm_rx_status_sysair", &rx_status_sysair_shm)) {
+			log_err("cannot open shm_rx_status_sysair");
+			result = 1;
+			break;
+		}
+
+		status_memory_init(&rx_status_uplink);
+		status_memory_init_sysair(&rx_status_sysair);
+
+		rx_status_uplink.wifi_adapter_cnt = rssi_rx.count;
+
+		shm_map_write(&rx_status_uplink_shm, &rx_status_uplink, sizeof(rx_status_uplink));
+		shm_map_write(&rx_status_sysair_shm, &rx_status_sysair, sizeof(rx_status_sysair));
+
+		while (svc_cycle()) {
+			wfb_rx_packet_t rx_data = {
+			    0,
+			};
+
+			if (wfb_rx_packet(&rssi_rx, &rx_data) > 0) {
+				result = process_packet(&rx_data);
+			}
+		}
+	} while (false);
+
+	return result;
 }

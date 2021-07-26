@@ -83,6 +83,8 @@ get_cputemp(void)
 int
 rssi_qgc_init(void)
 {
+	shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc));
+
 	return 0;
 }
 
@@ -147,7 +149,7 @@ rssi_qgc_main(void)
 	wbcdata.wifi_adapter_cnt = 0;
 
 	for (j = 0; j < 6; ++j) {
-		wbcdata.adapter[j].current_signal_dbm = -100;
+		wbcdata.adapter[j].current_signal_dbm = -127;
 		wbcdata.adapter[j].received_packet_cnt = 0;
 		wbcdata.adapter[j].type = 0;
 	}
@@ -157,7 +159,6 @@ rssi_qgc_main(void)
 	}
 
 	while (svc_cycle()) {
-		log_dbg("qgc");
 		/* читаем состояния */
 		shm_map_read(&rx_status_shm, (void **)&rx_status);
 		shm_map_read(&rx_status_uplink_shm, (void **)&rx_status_uplink);
@@ -247,8 +248,12 @@ rssi_qgc_main(void)
 
 		size_t c;
 		for (c = 0; c < number_cards; c++) {
-			wbcdata.adapter[c].current_signal_dbm =
-			    rx_status->adapter[c].current_signal_dbm;
+			if (rx_status->adapter[c].signal_good > 0) {
+				wbcdata.adapter[c].current_signal_dbm =
+				    rx_status->adapter[c].current_signal_dbm;
+			} else {
+				wbcdata.adapter[c].current_signal_dbm = -127;
+			}
 			wbcdata.adapter[c].received_packet_cnt =
 			    rx_status->adapter[c].received_packet_cnt;
 			wbcdata.adapter[c].type = rx_status->adapter[c].type;
