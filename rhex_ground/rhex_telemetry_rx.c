@@ -85,7 +85,7 @@ process_packet(wfb_rx_packet_t *rx_data, int sock, struct sockaddr_in *server)
 		buffer[buf_pos].seq = header->seqnumber;
 		buffer[buf_pos].filled = 1;
 
-		log_dbg("seq %u->buf[%u] ", buffer[buf_pos].seq, buf_pos);
+		// log_dbg("seq %u->buf[%u] ", buffer[buf_pos].seq, buf_pos);
 
 		buf_pos++;
 		if (buf_pos >= BUF_SZ) {
@@ -117,6 +117,8 @@ telemetry_rx_init(void)
 {
 	int result = -1;
 
+	log_dbg("telemetry_rx_init");
+
 	do {
 		if (!shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc))) {
 			break;
@@ -127,8 +129,6 @@ telemetry_rx_init(void)
 		}
 
 		status_memory_init_rc(&rx_status_telemetry);
-
-		log_dbg("telemetry_rx_init");
 
 		shm_map_write(&rx_status_telemetry_shm, &rx_status_telemetry,
 			      sizeof(rx_status_telemetry));
@@ -176,9 +176,9 @@ telemetry_rx_main(void)
 	}
 
 	/* Set up the server name */
-	server.sin_family = AF_INET;			    /* Internet Domain    */
-	server.sin_port = port;				    /* Server Port        */
-	server.sin_addr.s_addr = inet_addr("192.168.0.30"); /* Server's Address   */
+	server.sin_family = AF_INET;			 /* Internet Domain    */
+	server.sin_port = port;				 /* Server Port        */
+	server.sin_addr.s_addr = inet_addr("127.0.0.1"); /* Server's Address   */
 
 	lastseq = 0;
 

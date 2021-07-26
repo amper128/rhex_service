@@ -116,7 +116,7 @@ rssi_qgc_main(void)
 	size_t slen_rssi = sizeof(si_other_rssi);
 	si_other_rssi.sin_family = AF_INET;
 	si_other_rssi.sin_port = htons(PORT);
-	si_other_rssi.sin_addr.s_addr = inet_addr("192.168.0.30");
+	si_other_rssi.sin_addr.s_addr = inet_addr("127.0.0.1");
 	memset(si_other_rssi.sin_zero, '\0', sizeof(si_other_rssi.sin_zero));
 
 	wifibroadcast_rx_status_forward_t wbcdata;

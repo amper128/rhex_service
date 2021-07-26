@@ -13,7 +13,7 @@
 
 #include <private/video.h>
 
-wifibroadcast_rx_status_t *rx_status = NULL;
+static wfb_rx_stream_t stream;
 
 typedef struct {
 	int stdout_fds[2];
@@ -76,26 +76,26 @@ gstreamer_start(gst_desc_t *gst_desc)
 			close(gst_desc->stderr_fds[0]);
 
 			/* run program */
-			static const char *args_list[] = {
-			    /* progname */
-			    "/usr/bin/gst-launch-1.0",
-			    /* src */
-			    "fdsrc",
-			    /* pipe */
-			    "!",
-			    /* parse */
-			    "h264parse",
-			    /* pipe */
-			    "!",
-			    /* rtp */
-			    "rtph264pay", "pt=96", "config-interval=1",
-			    /* pipe */
-			    "!",
-			    /* sink */
-			    "udpsink", "port=5600", "host=192.168.0.30",
-			    /*"avdec_h264", "!", "autovideosink",*/
-			    /* end */
-			    NULL};
+			static const char *args_list[] = {/* progname */
+							  "/usr/bin/gst-launch-1.0",
+							  /* src */
+							  "fdsrc",
+							  /* pipe */
+							  "!",
+							  /* parse */
+							  "h264parse",
+							  /* pipe */
+							  "!",
+							  /* rtp */
+							  "rtph264pay", "pt=96",
+							  "config-interval=1",
+							  /* pipe */
+							  "!",
+							  /* sink */
+							  "udpsink", "port=5600", "host=127.0.0.1",
+							  /*"avdec_h264", "!", "autovideosink",*/
+							  /* end */
+							  NULL};
 
 			/* discard const qualifier workaround */
 			union {
@@ -129,7 +129,9 @@ gstreamer_start(gst_desc_t *gst_desc)
 int
 video_init(void)
 {
-	return 0;
+	int result = wfb_rx_stream_init(&stream, 0);
+
+	return result;
 }
 
 int
@@ -138,15 +140,9 @@ video_main(void)
 	log_dbg("starting video rx");
 	// setpriority(PRIO_PROCESS, 0, -10);
 
-	static wfb_rx_stream_t stream;
-
-	// rx_status = status_memory_open();
-
 	gst_desc_t gst;
 
 	gstreamer_start(&gst);
-
-	wfb_rx_stream_init(&stream, 0);
 
 	while (svc_cycle()) {
 		wfb_rx_stream_packet_t rx_data;
