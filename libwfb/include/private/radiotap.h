@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ieee80211_radiotap.h"
+#include <stdlib.h>
 
 /* Radiotap header iteration
  *   implemented in net/wireless/radiotap.c

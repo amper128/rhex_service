@@ -8,14 +8,16 @@
 
 #pragma once
 
+#include <svc/sharedmem.h>
 #include <wfb/wfb_rx.h>
+#include <wfb/wfb_status.h>
 
 #define MAX_PACKET_LENGTH (4192)
 
 typedef struct {
-	int valid;
-	int crc_correct;
 	size_t len; /* actual length of the packet stored in data */
+	bool valid;
+	bool crc_correct;
 	uint8_t *data;
 } packet_buffer_t;
 
@@ -29,10 +31,13 @@ typedef struct {
 	block_buffer_t *block_buffer_list;
 	uint64_t packetcounter_ts_prev[NL_MAX_IFACES];
 	uint64_t packetcounter_ts_now[NL_MAX_IFACES];
-	int packetcounter[NL_MAX_IFACES];
-	int packetcounter_last[NL_MAX_IFACES];
+	size_t packetcounter[NL_MAX_IFACES];
+	size_t packetcounter_last[NL_MAX_IFACES];
 	size_t bytes_received;
+	size_t bytes_decoded;
 	uint64_t current_air_datarate_ts;
+	shm_t status_shm;
+	wifibroadcast_rx_status_t rx_status;
 } wfb_rx_stream_t;
 
 typedef struct {
@@ -40,6 +45,6 @@ typedef struct {
 	uint8_t data[MAX_PACKET_LENGTH * 2U];
 } wfb_rx_stream_packet_t;
 
-int wfb_rx_stream_init(wfb_rx_stream_t *wfb_stream, int port);
+int wfb_rx_stream_init(wfb_rx_stream_t *rx, int port);
 
-int wfb_rx_stream(wfb_rx_stream_t *wfb_stream, wfb_rx_stream_packet_t *rx_data);
+int wfb_rx_stream(wfb_rx_stream_t *rx, wfb_rx_stream_packet_t *rx_data);
