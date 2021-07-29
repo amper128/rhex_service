@@ -83,8 +83,6 @@ get_cputemp(void)
 int
 rssi_qgc_init(void)
 {
-	shm_map_init("shm_rx_status_rc", sizeof(wifibroadcast_rx_status_t_rc));
-
 	return 0;
 }
 
@@ -182,8 +180,15 @@ rssi_qgc_main(void)
 		wbcdata.lost_packet_cnt_msp_up = 0;
 		wbcdata.lost_packet_cnt_msp_down = 0;
 		wbcdata.lost_packet_cnt_rc = rx_status_rc->lost_packet_cnt;
-		wbcdata.current_signal_joystick_uplink =
-		    rx_status_rc->adapter[0].current_signal_dbm;
+		/* RC uplink signal level */
+		int8_t dbm = -127;
+		size_t i;
+		for (i = 0U; i < number_cards; i++) {
+			if (rx_status_rc->adapter[i].current_signal_dbm > dbm) {
+				dbm = rx_status_rc->adapter[i].current_signal_dbm;
+			}
+		}
+		wbcdata.current_signal_joystick_uplink = dbm;
 		/*wbcdata.current_signal_telemetry_uplink =
 		 * t_uplink->adapter[0].current_signal_dbm;*/
 
