@@ -44,7 +44,10 @@ process_packet(wfb_rx_packet_t *rx_data, int sock, struct sockaddr_in *server)
 {
 	do {
 		/* write statistics */
-		rx_status_telemetry.adapter[rx_data->adapter].current_signal_dbm = rx_data->dbm;
+		if (rx_data->dbm > -127) {
+			rx_status_telemetry.adapter[rx_data->adapter].current_signal_dbm =
+			    rx_data->dbm;
+		}
 		rx_status_telemetry.adapter[rx_data->adapter].received_packet_cnt++;
 		rx_status_telemetry.last_update = svc_get_monotime();
 		shm_map_write(&rx_status_telemetry_shm, &rx_status_telemetry,
@@ -85,8 +88,6 @@ process_packet(wfb_rx_packet_t *rx_data, int sock, struct sockaddr_in *server)
 		buffer[buf_pos].seq = header->seqnumber;
 		buffer[buf_pos].filled = 1;
 
-		// log_dbg("seq %u->buf[%u] ", buffer[buf_pos].seq, buf_pos);
-
 		buf_pos++;
 		if (buf_pos >= BUF_SZ) {
 			buf_pos = 0U;
@@ -108,7 +109,7 @@ status_memory_init_rc(wifibroadcast_rx_status_t_rc *s)
 	for (i = 0; i < NL_MAX_IFACES; ++i) {
 		s->adapter[i].received_packet_cnt = 0;
 		s->adapter[i].wrong_crc_cnt = 0;
-		s->adapter[i].current_signal_dbm = -126;
+		s->adapter[i].current_signal_dbm = -127;
 	}
 }
 
