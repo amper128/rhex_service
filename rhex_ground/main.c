@@ -27,6 +27,7 @@
 #include <wfb/wfb_status.h>
 
 #include <private/qgc_forward.h>
+#include <private/rhex_control.h>
 #include <private/rhex_telemetry_rx.h>
 #include <private/rhex_tx_rc.h>
 #include <private/rssi_rx.h>
@@ -112,8 +113,9 @@ start_microservices(void)
 			     {"telemetry", telemetry_rx_init, telemetry_rx_main, 10ULL * TIME_MS},
 			     {"rssi qgc", rssi_qgc_init, rssi_qgc_main, 250ULL * TIME_MS},
 			     {"video", video_init, video_main, 0ULL},
-			     {"rc_tx", rhex_tx_rc_init, rhex_tx_rc_main, 0ULL}},
-			    5U};
+			     {"rc_tx", rhex_tx_rc_init, rhex_tx_rc_main, 0ULL},
+			     {"control", rhex_control_init, rhex_control_main, 0ULL}},
+			    6U};
 
 	size_t i;
 
